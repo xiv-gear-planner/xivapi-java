@@ -17,7 +17,7 @@ public class NormalFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public X getValue(JsonNode current, JsonNode root) {
+	public X getValue(JsonNode current, XivApiContext context) {
 		try {
 			var fieldsNode = current.get("fields");
 			var fieldNode = fieldsNode.get(fieldName);

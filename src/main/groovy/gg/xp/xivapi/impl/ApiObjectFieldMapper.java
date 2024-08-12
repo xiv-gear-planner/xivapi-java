@@ -89,11 +89,11 @@ public class ApiObjectFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public X getValue(final JsonNode current, final JsonNode root) {
+	public X getValue(JsonNode current, XivApiContext context) {
 
 		final Map<Method, Object> methodValueMap = new LinkedHashMap<>();
 		methodFieldMap.forEach((method, fieldMapper) -> {
-			Object value = fieldMapper.getValue(current, root);
+			Object value = fieldMapper.getValue(current, context);
 			methodValueMap.put(method, value);
 
 		});

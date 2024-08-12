@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import gg.xp.xivapi.annotations.XivApiSheet
 import gg.xp.xivapi.clienttypes.XivApiObject
+import gg.xp.xivapi.clienttypes.XivApiSchemaVersion
+import gg.xp.xivapi.clienttypes.XivApiSettings
 import gg.xp.xivapi.impl.ApiObjectFieldMapper
+import gg.xp.xivapi.impl.XivApiContext
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -17,7 +20,7 @@ import java.net.http.HttpResponse
 class XivApiClient {
 
 	private final ObjectMapper mapper = new ObjectMapper();
-
+	private final XivApiSettings settings = XivApiSettings.newBuilder().build();
 
 	<X extends XivApiObject> X getById(Class<X> cls, int id) {
 		if (!cls.isInterface()) {
@@ -33,7 +36,7 @@ class XivApiClient {
 
 		List<String> fields = mapping.queryFieldNames
 
-		URI uri = new URI("https://beta.xivapi.com/api/1/sheet/${sheetName}/${id}?fields=${fields.join(",")}")
+		URI uri = new URI("${settings.baseUri}/sheet/${sheetName}/${id}?fields=${fields.join(",")}")
 
 		log.info("Constructed URI: ${uri}")
 
@@ -45,7 +48,16 @@ class XivApiClient {
 
 		JsonNode root = this.mapper.readTree(response)
 
-		return mapping.getValue(root, root)
+		XivApiSchemaVersion sv = new XivApiSchemaVersion() {
+			@Override
+			String fullVersionString() {
+				return root.get("schema").textValue()
+			}
+		}
+
+		var context = new XivApiContext(root, settings, sv)
+
+		return mapping.getValue(root, context)
 
 
 	}

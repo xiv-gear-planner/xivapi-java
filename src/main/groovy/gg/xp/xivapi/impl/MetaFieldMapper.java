@@ -18,7 +18,7 @@ public class MetaFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public X getValue(JsonNode current, JsonNode root) {
+	public X getValue(JsonNode current, XivApiContext context) {
 		try {
 			var fieldNode = current.get(metaFieldName);
 			return mapper.convertValue(fieldNode, fieldType);

@@ -20,13 +20,13 @@ public class SubStructFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public X getValue(JsonNode current, JsonNode root) {
+	public X getValue(JsonNode current, XivApiContext context) {
 		JsonNode child = current.get("fields").get(fieldName);
 		if (child == null) {
 			throw new IllegalArgumentException("Expected to have child field %s but it does not exist. Actual children: %s"
 					.formatted(fieldName, IteratorUtils.toList(current.fieldNames())));
 		}
-		return wrapped.getValue(child, root);
+		return wrapped.getValue(child, context);
 	}
 
 	@Override

@@ -18,7 +18,7 @@ public class FlatFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public X getValue(JsonNode current, JsonNode root) {
+	public X getValue(JsonNode current, XivApiContext context) {
 		try {
 			var fieldNode = current.get(fieldName);
 			return mapper.convertValue(fieldNode, fieldType);

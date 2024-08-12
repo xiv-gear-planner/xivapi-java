@@ -19,8 +19,8 @@ public class SubObjectFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public X getValue(JsonNode current, JsonNode root) {
-		return wrapped.getValue(current.get("fields").get(fieldName), root);
+	public X getValue(JsonNode current, XivApiContext context) {
+		return wrapped.getValue(current.get("fields").get(fieldName), context);
 	}
 
 	@Override

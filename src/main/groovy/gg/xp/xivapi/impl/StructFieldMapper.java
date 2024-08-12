@@ -3,7 +3,6 @@ package gg.xp.xivapi.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.annotations.XivApiField;
-import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import org.slf4j.Logger;
@@ -71,12 +70,12 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public X getValue(final JsonNode current, final JsonNode root) {
+	public X getValue(JsonNode current, XivApiContext context) {
 
 		// TODO: deduplicate this
 		final Map<Method, Object> methodValueMap = new LinkedHashMap<>();
 		methodFieldMap.forEach((method, fieldMapper) -> {
-			Object value = fieldMapper.getValue(current, root);
+			Object value = fieldMapper.getValue(current, context);
 			methodValueMap.put(method, value);
 
 		});
