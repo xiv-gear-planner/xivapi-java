@@ -33,8 +33,8 @@ public interface Item extends XivApiObject {
 	// should be pulled from 'Rarity'
 	int getRarity();
 
-//	// TODO
-//	Icon getIcon();
+	// TODO
+	Icon getIcon();
 
 	// Not interesting since this is a food item
 	EquipSlotCategory getEquipSlotCategory();

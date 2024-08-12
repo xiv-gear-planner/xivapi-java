@@ -100,7 +100,7 @@ class BasicItemTest {
 
 	@Test
 	void testIconId() {
-//		Assertions.assertEquals(24103, item.icon.id)
+		Assertions.assertEquals(24103, item.icon.id)
 	}
 
 }

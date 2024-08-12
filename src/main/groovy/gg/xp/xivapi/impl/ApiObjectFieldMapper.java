@@ -69,9 +69,9 @@ public class ApiObjectFieldMapper<X> implements FieldMapper<X> {
 			else if (XivApiObject.class.isAssignableFrom(returnType)) {
 				fieldMapper = new SubObjectFieldMapper<>(fieldName, returnType, mapper);
 			}
-//			else if (XivApiSubStruct.class.isAssignableFrom(returnType)) {
-//				fieldMapper = new SubStructFieldMapper<>(fieldName, returnType, mapper);
-//			}
+			else if (XivApiSubStruct.class.isAssignableFrom(returnType)) {
+				fieldMapper = new SubStructFieldMapper<>(fieldName, returnType, mapper);
+			}
 			else if (metaFieldAnn != null) {
 				// TODO: this shouldn't be mutually exclusive with the others
 				fieldMapper = new MetaFieldMapper<>(fieldName, returnType, mapper);

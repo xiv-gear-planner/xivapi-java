@@ -59,7 +59,7 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 				fieldMapper = new SubObjectFieldMapper<>(fieldName, returnType, mapper);
 			}
 			else {
-				fieldMapper = new NormalFieldMapper<>(fieldName, returnType, mapper);
+				fieldMapper = new FlatFieldMapper<>(fieldName, returnType, mapper);
 			}
 			methodFieldMap.put(method, fieldMapper);
 

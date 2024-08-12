@@ -2,6 +2,7 @@ package gg.xp.xivapi.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections4.IteratorUtils;
 
 import java.util.List;
 
@@ -20,11 +21,17 @@ public class SubStructFieldMapper<X> implements FieldMapper<X> {
 
 	@Override
 	public X getValue(JsonNode current, JsonNode root) {
-		return wrapped.getValue(current.get("fields").get(fieldName), root);
+		JsonNode child = current.get("fields").get(fieldName);
+		if (child == null) {
+			throw new IllegalArgumentException("Expected to have child field %s but it does not exist. Actual children: %s"
+					.formatted(fieldName, IteratorUtils.toList(current.fieldNames())));
+		}
+		return wrapped.getValue(child, root);
 	}
 
 	@Override
 	public List<String> getQueryFieldNames() {
-		return wrapped.getQueryFieldNames().stream().map(item -> "%s.%s".formatted(fieldName, item)).toList();
+		// Cannot filter to sub-fields in these
+		return List.of(fieldName);
 	}
 }
