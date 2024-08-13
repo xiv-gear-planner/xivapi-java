@@ -27,7 +27,7 @@ public final class XivApiSettings {
 
 	public static class Builder {
 
-		boolean strict;
+		boolean strict = true;
 		URI baseUri;
 
 		{

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.annotations.XivApiField;
 import gg.xp.xivapi.annotations.XivApiRaw;
+import gg.xp.xivapi.clienttypes.XivApiException;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,9 +94,11 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 				return "%s(%s)".formatted(objectType.getSimpleName(), id);
 			}
 
-			// TODO: strict mode where this is an error
 			Object value = methodValueMap.get(method);
-			if (value == null)
+			if (value == null) {
+				if (context.getSettings().isStrict()) {
+					throw new XivApiException("Null value for field %s of %s".formatted(method.getName(), objectType.getSimpleName()));
+				}
 				if (method.getReturnType().isPrimitive()) {
 					log.error("Null primitive field! {}", method.getName());
 					return 0;
@@ -103,6 +106,7 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 				else {
 					log.error("Null object field! {}", method.getName());
 				}
+			}
 
 			return value;
 		});
