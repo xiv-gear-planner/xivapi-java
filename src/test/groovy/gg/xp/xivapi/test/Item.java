@@ -1,5 +1,6 @@
 package gg.xp.xivapi.test;
 
+import gg.xp.xivapi.annotations.NullIfZero;
 import gg.xp.xivapi.annotations.XivApiField;
 import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.clienttypes.XivApiObject;
@@ -10,7 +11,6 @@ import gg.xp.xivapi.annotations.XivApiSheet;
 public interface Item extends XivApiObject {
 	// TODO: arrays
 	// TODO: flat structs
-	// TODO: id
 	// TODO: schema version
 
 	// ID will always be auto-filled, but this is declared on XivApiObject so no need to do it here
@@ -37,18 +37,21 @@ public interface Item extends XivApiObject {
 	Icon getIcon();
 
 	// Not interesting since this is a food item
-	EquipSlotCategory getEquipSlotCategory();
+	@NullIfZero
+	ClassJobCategory getClassJobCategory();
 
 	ItemAction getItemAction();
 
 	@XivApiRaw
 	int getLevelItem();
 
-	// test auto-conversion from int to boolean
-	boolean getDesynth();
+	// test auto-conversion from int to boolean, and also 'is' instead of 'get'
+	boolean isDesynth();
 
 	default int getNameSize() {
 		return getName().length();
 	}
+
+	ClassJob getClassJobUse();
 
 }

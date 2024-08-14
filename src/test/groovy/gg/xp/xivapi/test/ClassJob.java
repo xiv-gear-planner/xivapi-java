@@ -1,19 +1,13 @@
 package gg.xp.xivapi.test;
 
-import gg.xp.xivapi.annotations.NullIfZero;
 import gg.xp.xivapi.annotations.XivApiField;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 
 import java.util.List;
 
-@NullIfZero
-public interface ItemAction extends XivApiObject {
-	boolean getCondBattle();
+public interface ClassJob extends XivApiObject {
 
-	@XivApiField("Type")
-	int type();
-
-	List<Integer> getData();
+	Quest getUnlockQuest();
 
 //	int[] getDataHQ();
 //

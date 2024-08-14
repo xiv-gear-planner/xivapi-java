@@ -1,12 +1,12 @@
 package gg.xp.xivapi.test;
 
 import gg.xp.xivapi.annotations.XivApiField;
-import gg.xp.xivapi.clienttypes.XivApiSubStruct;
+import gg.xp.xivapi.clienttypes.XivApiStruct;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public interface Icon extends XivApiSubStruct {
+public interface Icon extends XivApiStruct {
 	@XivApiField("id")
 	int getId();
 

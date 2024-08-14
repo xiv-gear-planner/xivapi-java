@@ -1,6 +1,8 @@
 plugins {
 	id 'groovy'
 	id 'java-library'
+	// TODO try to get this working
+//	id 'org.moditect.gradleplugin' version '1.0.0-rc3'
 }
 
 group = 'gg.xp'
@@ -28,4 +30,28 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+	doFirst {
+		jvmArgs += '--add-opens'
+		jvmArgs += 'java.base/java.lang.reflect=ALL-UNNAMED'
+//		jvmArgs += 'java.base/java.lang.reflect=gg.xp.xivapi'
+	}
 }
+
+def mainPkg = 'gg.xp.xivapi'
+
+//moditect {
+//	moduleName = mainPkg
+//	requires {
+//		inferredModules = true
+//	}
+////	addMainModuleInfo {
+////		version = project.version
+////		overwriteExistingFiles = true
+////		modules {
+////			moduleInfo {
+////				name = mainPkg
+////				exports = mainPkg
+////			}
+////		}
+////	}
+//}
