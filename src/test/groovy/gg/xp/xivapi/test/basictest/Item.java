@@ -1,4 +1,4 @@
-package gg.xp.xivapi.test;
+package gg.xp.xivapi.test.basictest;
 
 import gg.xp.xivapi.annotations.NullIfZero;
 import gg.xp.xivapi.annotations.XivApiField;
@@ -39,6 +39,10 @@ public interface Item extends XivApiObject {
 	// Not interesting since this is a food item
 	@NullIfZero
 	ClassJobCategory getClassJobCategory();
+
+	// Test that it does not return null if annotation is not present
+	@XivApiField("ClassJobCategory")
+	ClassJobCategory getClassJobCategoryNotNull();
 
 	ItemAction getItemAction();
 

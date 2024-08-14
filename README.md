@@ -84,12 +84,15 @@ Item item = client.getById(Item, 44096);
 - Primitive, cross-sheet object, and struct
 - Interface default methods
 - as(raw)
+- Iterating over a sheet
+- Basic searching
 
 ### Not Complete
 
 - List and array types
-- Querying full sheets
-- Searching
-- Iterating
 - Schema versions
 - Cache mappings so they don't have to be recomputed
+- Multiple languages
+- Transients
+- Searching based on method references (e.g. something like  `equals(Item::getName, "My Item")`)
+- Iteration prefetch

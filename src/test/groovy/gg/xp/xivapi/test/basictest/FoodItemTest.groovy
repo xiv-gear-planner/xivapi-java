@@ -1,4 +1,4 @@
-package gg.xp.xivapi.test
+package gg.xp.xivapi.test.basictest
 
 import gg.xp.xivapi.XivApiClient
 import gg.xp.xivapi.debug.DebugUtils
@@ -114,6 +114,11 @@ class FoodItemTest {
 	@Test
 	void testClassJobCategory() {
 		Assertions.assertEquals(null, item.classJobCategory)
+	}
+
+	@Test
+	void testClassJobCategoryNotNull() {
+		Assertions.assertEquals(0, item.classJobCategoryNotNull.rowId)
 	}
 
 }

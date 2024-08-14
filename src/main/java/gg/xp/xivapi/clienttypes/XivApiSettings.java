@@ -7,10 +7,12 @@ public final class XivApiSettings {
 
 	private final boolean strict;
 	private final URI baseUri;
+	private final int concurrencyLimit;
 
-	private XivApiSettings(boolean strict, URI baseUri) {
+	private XivApiSettings(boolean strict, URI baseUri, int concurrencyLimit) {
 		this.strict = strict;
 		this.baseUri = baseUri;
+		this.concurrencyLimit = concurrencyLimit;
 	}
 
 	public boolean isStrict() {
@@ -21,6 +23,10 @@ public final class XivApiSettings {
 		return baseUri;
 	}
 
+	public int getConcurrencyLimit() {
+		return concurrencyLimit;
+	}
+
 	public static Builder newBuilder() {
 		return new Builder();
 	}
@@ -29,6 +35,7 @@ public final class XivApiSettings {
 
 		boolean strict = true;
 		URI baseUri;
+		int concurrencyLimit = 10;
 
 		{
 			try {
@@ -50,7 +57,7 @@ public final class XivApiSettings {
 		}
 
 		public XivApiSettings build() {
-			return new XivApiSettings(strict, baseUri);
+			return new XivApiSettings(strict, baseUri, concurrencyLimit);
 		}
 
 	}

@@ -2,6 +2,7 @@ package gg.xp.xivapi.mappers.util;
 
 import gg.xp.xivapi.annotations.XivApiField;
 import gg.xp.xivapi.annotations.XivApiMetaField;
+import gg.xp.xivapi.annotations.XivApiSheet;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
 
 import java.lang.reflect.Method;
@@ -49,5 +50,26 @@ public final class MappingUtils {
 	 */
 	public static boolean isArrayQueryType(Class<?> type) {
 		return type.equals(List.class) || type.isArray();
+	}
+
+	public static String validateAndGetSheetName(Class<?> cls) {
+
+		if (!cls.isInterface()) {
+			throw new IllegalArgumentException("Argument must be an interface, got %s".formatted(cls));
+		}
+
+		XivApiSheet sheetAnn = cls.getAnnotation(XivApiSheet.class);
+
+		if (sheetAnn == null) {
+			throw new IllegalArgumentException("Class %s does not have a @XivApiSheet sheetAnn".formatted(cls));
+		}
+
+		String value = sheetAnn.value();
+
+		if (value.isEmpty()) {
+			return cls.getSimpleName();
+		}
+
+		return value;
 	}
 }

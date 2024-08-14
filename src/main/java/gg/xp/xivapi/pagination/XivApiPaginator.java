@@ -1,0 +1,148 @@
+package gg.xp.xivapi.pagination;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import gg.xp.xivapi.XivApiClient;
+import gg.xp.xivapi.clienttypes.XivApiObject;
+import gg.xp.xivapi.clienttypes.XivApiSchemaVersion;
+import gg.xp.xivapi.exceptions.XivApiDeserializationException;
+import gg.xp.xivapi.impl.XivApiContext;
+import gg.xp.xivapi.mappers.FieldMapper;
+
+import java.net.URI;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.function.BiPredicate;
+import java.util.stream.StreamSupport;
+
+/**
+ * Base list/search paginator implementation. Not thread safe. Does not do any prefetching.
+ *
+ * @param <X>
+ */
+public abstract sealed class XivApiPaginator<X extends XivApiObject> implements Iterator<X> permits XivApiListPaginator, XivApiSearchPaginator {
+	private final XivApiClient client;
+	protected final URI originalUri;
+	private final BiPredicate<Integer, X> stopCondition;
+	private final FieldMapper<X> mapper;
+	protected final int perPageItemCount;
+	protected XivApiPage currentPage;
+	private int globalBaseIndex;
+	private boolean hasHitStopCondition;
+
+	protected XivApiPaginator(XivApiClient client, URI originalUri, BiPredicate<Integer, X> stopCondition, FieldMapper<X> mapper, int perPageItemCount, JsonNode firstResponse) {
+		this.client = client;
+		this.originalUri = originalUri;
+		this.stopCondition = stopCondition;
+		this.mapper = mapper;
+		this.perPageItemCount = perPageItemCount;
+		currentPage = new XivApiPage(firstResponse);
+	}
+
+	protected abstract URI getNextPageUri();
+
+	private void nextPage() {
+		// TODO: getLast requires 21+ - do we want to support older Java versions?
+		globalBaseIndex += currentPage.size();
+		URI newURI = getNextPageUri();
+
+		JsonNode newRoot = client.sendGET(newURI);
+		currentPage = new XivApiPage(newRoot);
+	}
+
+	@Override
+	public boolean hasNext() {
+		if (!currentPage.hasAnyValues()) {
+			return false;
+		}
+		if (hasHitStopCondition) {
+			return false;
+		}
+		if (!currentPage.hasNext()) {
+			// If the page has fewer entries than expected, we are done
+			if (!hasMorePages()) {
+				return false;
+			}
+			nextPage();
+		}
+		return currentPage.hasNext();
+	}
+
+	protected boolean hasMorePages() {
+		return currentPage.size() < perPageItemCount;
+	}
+
+	@Override
+	public X next() {
+		if (!currentPage.hasNext()) {
+			throw new NoSuchElementException("Current page has no more values");
+		}
+		return currentPage.next();
+	}
+
+	protected abstract JsonNode getResultsNode(JsonNode rootNode);
+
+	protected class XivApiPage implements Iterator<X> {
+		protected final List<X> values;
+		protected int index;
+		protected JsonNode rootNode;
+
+		XivApiPage(JsonNode root) {
+			this.rootNode = root;
+			JsonNode rows = getResultsNode(rootNode);
+			if (rows == null) {
+				throw new XivApiDeserializationException("Missing 'rows' field in response");
+			}
+			XivApiSchemaVersion sv = new XivApiSchemaVersion() {
+				@Override
+				public String fullVersionString() {
+					return root.get("schema").textValue();
+				}
+			};
+			Iterable<JsonNode> iter = rows::elements;
+			values = StreamSupport.stream(iter.spliterator(), false)
+					.map(node -> {
+						var context = new XivApiContext(node, client.getSettings(), sv);
+						return mapper.getValue(node, context);
+					})
+					.toList();
+		}
+
+		public boolean hasNext() {
+			if (values.isEmpty()) {
+				return false;
+			}
+			// If we have 10 items, we want to stop when index is 10
+			if (index >= values.size()) {
+				return false;
+			}
+			X peek = values.get(index);
+			boolean fullStop = stopCondition.test(index + globalBaseIndex, peek);
+			if (fullStop) {
+				hasHitStopCondition = true;
+				return false;
+			}
+			return true;
+		}
+
+		boolean hasAnyValues() {
+			return !values.isEmpty();
+		}
+
+		public X next() {
+			X out;
+			try {
+				out = values.get(index);
+			}
+			catch (IndexOutOfBoundsException e) {
+				throw new NoSuchElementException(e);
+			}
+			index++;
+			return out;
+		}
+
+		public int size() {
+			return values.size();
+		}
+	}
+}

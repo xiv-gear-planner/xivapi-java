@@ -6,6 +6,7 @@ import gg.xp.xivapi.annotations.NullIfZero;
 import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.clienttypes.XivApiObject;
+import gg.xp.xivapi.exceptions.XivApiDeserializationException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.getters.MetaFieldMapper;
@@ -81,37 +82,45 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 		int primaryKey;
 		int rowId;
-		// If this is nested (i.e. it is not the root node), and it has a value of 0 but lacks row_id and/or fields,
-		// then it is actually a null.
-		boolean isNested = current != context.getRootNode();
-		if (isNested) {
-			boolean zeroValue = current.get("value").asInt() == 0;
-			if (zeroValue
-			    && (current.get("row_id") == null
-			        || current.get("fields") == null
-			        || current.get("fields").isEmpty())) {
-				return null;
-			}
-			if (zeroValue) {
-				if (objectType.isAnnotationPresent(NullIfZero.class)) {
+		final Map<Method, Object> methodValueMap = new LinkedHashMap<>();
+		try {
+			// If this is nested (i.e. it is not the root node), and it has a value of 0 but lacks row_id and/or fields,
+			// then it is actually a null.
+			boolean isNested = current != context.getRootNode();
+			if (isNested) {
+				boolean zeroValue = current.get("value").asInt() == 0;
+				if (zeroValue
+				    && (current.get("row_id") == null
+				        || current.get("fields") == null
+				        || current.get("fields").isEmpty())) {
 					return null;
 				}
+				if (zeroValue) {
+					if (objectType.isAnnotationPresent(NullIfZero.class)) {
+						return null;
+					}
+				}
+				// This behavior is different because only nested objects have a 'value'.
+				// Top level only has row_id.
+				primaryKey = current.get("value").asInt();
+				rowId = current.get("row_id").asInt();
 			}
-			// This behavior is different because only nested objects have a 'value'.
-			// Top level only has row_id.
-			primaryKey = current.get("value").asInt();
-			rowId = current.get("row_id").asInt();
+			else {
+				rowId = primaryKey = current.get("row_id").asInt();
+			}
+
+
+			methodFieldMap.forEach((method, fieldMapper) -> {
+				Object value = fieldMapper.getValue(current, context);
+				methodValueMap.put(method, value);
+			});
 		}
-		else {
-			rowId = primaryKey = current.get("row_id").asInt();
+		catch (Throwable t) {
+			throw new XivApiDeserializationException("Error deserializing %s from '%s'".formatted(objectType, current), t);
 		}
 
 
-		final Map<Method, Object> methodValueMap = new LinkedHashMap<>();
-		methodFieldMap.forEach((method, fieldMapper) -> {
-			Object value = fieldMapper.getValue(current, context);
-			methodValueMap.put(method, value);
-		});
+		// TODO: validate that every method is either default or has a value
 
 		//noinspection unchecked
 		return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, (proxy, method, args) -> {
@@ -134,6 +143,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			}
 
 			// TODO: strict mode where this is an error
+
 			Object value = methodValueMap.get(method);
 			if (value == null) {
 				if (method.getReturnType().isPrimitive()) {
@@ -141,12 +151,15 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 					return 0;
 				}
 				else {
-					log.error("Null object field! {}", method.getName());
+					if (!method.isAnnotationPresent(NullIfZero.class)
+					    || method.getReturnType().isAnnotationPresent(NullIfZero.class)) {
+						log.error("Null object field! {}", method.getName());
+					}
 				}
 			}
 
 			if (value instanceof XivApiObject xao) {
-				if (xao.getPrimaryKey() == 0) {
+				if (xao.getPrimaryKey() == 0 && method.isAnnotationPresent(NullIfZero.class)) {
 					return null;
 				}
 			}

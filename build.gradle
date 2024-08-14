@@ -1,4 +1,5 @@
 plugins {
+	// Only used for tests
 	id 'groovy'
 	id 'java-library'
 	// TODO try to get this working
@@ -13,7 +14,7 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.apache.groovy:groovy:4.0.22'
+	testImplementation 'org.apache.groovy:groovy:4.0.22'
 	implementation 'org.slf4j:slf4j-api:2.0.12'
 	// https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5
 	implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.3.1'
@@ -23,7 +24,7 @@ dependencies {
 	implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
 	compileOnly 'org.jetbrains:annotations:24.1.0'
 
-	testImplementation platform('org.junit:junit-bom:5.10.3')
+	testImplementation platform('org.junit:junit-bom:5.11.0')
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation 'ch.qos.logback:logback-classic:1.5.6'
 }
@@ -35,6 +36,19 @@ test {
 		jvmArgs += 'java.base/java.lang.reflect=ALL-UNNAMED'
 //		jvmArgs += 'java.base/java.lang.reflect=gg.xp.xivapi'
 	}
+
+	// Configure Gradle to avoid forking new JVMs
+	forkEvery = 0
+	maxParallelForks = 1
+
+	// Configure JUnit 5 parallel execution
+	systemProperty 'junit.jupiter.execution.parallel.enabled', 'true'
+	systemProperty 'junit.jupiter.execution.parallel.mode.default', 'concurrent'
+	systemProperty 'junit.jupiter.execution.parallel.mode.classes.default', 'concurrent'
+	systemProperty 'junit.jupiter.execution.parallel.mode.methods.default', 'concurrent'
+	systemProperty 'junit.jupiter.execution.parallel.config.strategy', 'fixed'
+	systemProperty 'junit.jupiter.execution.parallel.config.fixed.parallelism', '8'
+
 }
 
 def mainPkg = 'gg.xp.xivapi'

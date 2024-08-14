@@ -1,4 +1,4 @@
-package gg.xp.xivapi.test;
+package gg.xp.xivapi.test.basictest;
 
 import gg.xp.xivapi.annotations.NullIfZero;
 import gg.xp.xivapi.annotations.XivApiField;
