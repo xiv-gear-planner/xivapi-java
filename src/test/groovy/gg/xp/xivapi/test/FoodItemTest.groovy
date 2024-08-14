@@ -38,7 +38,7 @@ class FoodItemTest {
 
 	@Test
 	void testId() {
-		Assertions.assertEquals(44096, item.id)
+		Assertions.assertEquals(44096, item.primaryKey)
 	}
 
 	@Test
@@ -88,7 +88,7 @@ class FoodItemTest {
 
 	@Test
 	void testItemActionId() {
-		Assertions.assertEquals(2526, item.itemAction.id)
+		Assertions.assertEquals(2526, item.itemAction.primaryKey)
 	}
 
 	@Test

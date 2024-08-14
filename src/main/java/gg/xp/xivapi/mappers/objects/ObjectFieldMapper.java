@@ -3,7 +3,6 @@ package gg.xp.xivapi.mappers.objects;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.annotations.NullIfZero;
-import gg.xp.xivapi.annotations.XivApiField;
 import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.clienttypes.XivApiObject;
@@ -28,14 +27,16 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 	private static final Logger log = LoggerFactory.getLogger(ObjectFieldMapper.class);
 	private final Map<Method, FieldMapper<?>> methodFieldMap = new LinkedHashMap<>();
 	private final Class<X> objectType;
+	private final Method pkMethod;
+	private final Method ridMethod;
 
 	public ObjectFieldMapper(Class<X> cls, ObjectMapper mapper) {
 		this.objectType = cls;
 		try {
-			Method idMethod = cls.getMethod("getId");
-			methodFieldMap.put(idMethod, new MetaFieldMapper<>("row_id", int.class, idMethod, mapper));
-			Method ridMethod = cls.getMethod("getRowId");
-			methodFieldMap.put(ridMethod, new MetaFieldMapper<>("row_id", int.class, ridMethod, mapper));
+			pkMethod = cls.getMethod("getPrimaryKey");
+//			methodFieldMap.put(pkMethod, new MetaFieldMapper<>("value", int.class, pkMethod, mapper));
+			ridMethod = cls.getMethod("getRowId");
+//			methodFieldMap.put(ridMethod, new MetaFieldMapper<>("row_id", int.class, ridMethod, mapper));
 		}
 		catch (NoSuchMethodException e) {
 			throw new RuntimeException(e);
@@ -78,6 +79,8 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 	@Override
 	public X getValue(JsonNode current, XivApiContext context) {
 
+		int primaryKey;
+		int rowId;
 		// If this is nested (i.e. it is not the root node), and it has a value of 0 but lacks row_id and/or fields,
 		// then it is actually a null.
 		boolean isNested = current != context.getRootNode();
@@ -95,6 +98,13 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 					return null;
 				}
 			}
+			// This behavior is different because only nested objects have a 'value'.
+			// Top level only has row_id.
+			primaryKey = current.get("value").asInt();
+			rowId = current.get("row_id").asInt();
+		}
+		else {
+			rowId = primaryKey = current.get("row_id").asInt();
 		}
 
 
@@ -113,8 +123,15 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 			// Custom toString()
 			if (method.getName().equals("toString") && method.getParameterCount() == 0) {
-				int id = ((XivApiObject) proxy).getId();
+				int id = ((XivApiObject) proxy).getPrimaryKey();
 				return "%s(%s)".formatted(objectType.getSimpleName(), id);
+			}
+
+			if (method.equals(pkMethod)) {
+				return primaryKey;
+			}
+			if (method.equals(ridMethod)) {
+				return rowId;
 			}
 
 			// TODO: strict mode where this is an error
@@ -130,7 +147,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			}
 
 			if (value instanceof XivApiObject xao) {
-				if (xao.getId() == 0) {
+				if (xao.getPrimaryKey() == 0) {
 					return null;
 				}
 			}

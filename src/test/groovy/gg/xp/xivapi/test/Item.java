@@ -7,6 +7,7 @@ import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.annotations.XivApiSheet;
 
+// Indicate what sheet should be queried
 @XivApiSheet("Item")
 public interface Item extends XivApiObject {
 	// TODO: arrays
