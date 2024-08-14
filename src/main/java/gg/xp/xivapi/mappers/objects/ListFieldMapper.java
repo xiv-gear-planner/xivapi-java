@@ -46,7 +46,6 @@ public class ListFieldMapper<X> implements FieldMapper<List<X>> {
 		if (!current.isArray()) {
 			throw new IllegalArgumentException("Expected an array, got %s".formatted(current));
 		}
-		// TODO: deduplicate this
 		List<X> out = new ArrayList<>(current.size());
 		for (JsonNode jsonNode : current) {
 			out.add(innerMapper.getValue(jsonNode, context));

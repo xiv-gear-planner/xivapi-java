@@ -11,7 +11,6 @@ import gg.xp.xivapi.annotations.XivApiSheet;
 @XivApiSheet("Item")
 public interface Item extends XivApiObject {
 	// TODO: arrays
-	// TODO: flat structs
 	// TODO: schema version
 
 	// ID will always be auto-filled, but this is declared on XivApiObject so no need to do it here
@@ -34,7 +33,7 @@ public interface Item extends XivApiObject {
 	// should be pulled from 'Rarity'
 	int getRarity();
 
-	// TODO
+	// flat struct
 	Icon getIcon();
 
 	// Not interesting since this is a food item

@@ -92,3 +92,4 @@ Item item = client.getById(Item, 44096);
 - Searching
 - Iterating
 - Schema versions
+- Cache mappings so they don't have to be recomputed

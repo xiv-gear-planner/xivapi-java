@@ -31,9 +31,4 @@ public interface FieldMapper<X> {
 	X getValue(JsonNode current, XivApiContext context);
 
 	List<String> getQueryFieldNames();
-
-	// TODO
-	default String getQueryFieldSuffix() {
-		return "";
-	}
 }

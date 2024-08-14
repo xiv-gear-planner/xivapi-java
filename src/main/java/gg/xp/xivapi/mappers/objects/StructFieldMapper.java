@@ -19,7 +19,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-// TODO
 public class StructFieldMapper<X> implements FieldMapper<X> {
 
 	private static final Logger log = LoggerFactory.getLogger(StructFieldMapper.class);
@@ -49,14 +48,9 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 		}
 	}
 
-	public Class<X> getObjectType() {
-		return objectType;
-	}
-
 	@Override
 	public X getValue(JsonNode current, XivApiContext context) {
 
-		// TODO: deduplicate this
 		final Map<Method, Object> methodValueMap = new LinkedHashMap<>();
 		methodFieldMap.forEach((method, fieldMapper) -> {
 			Object value = fieldMapper.getValue(current, context);
@@ -73,7 +67,7 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 
 			// Custom toString()
 			if (method.getName().equals("toString") && method.getParameterCount() == 0) {
-				return "%s(Proxy)".formatted(objectType.getSimpleName());
+				return "%s(StructProxy)".formatted(objectType.getSimpleName());
 			}
 
 			Object value = methodValueMap.get(method);
@@ -99,10 +93,6 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 	public List<String> getQueryFieldNames() {
 		// Xivapi does not support filtering sub-fields in simple structs - only in real sheet objects.
 		return List.of();
-//		return methodFieldMap.values()
-//				.stream()
-//				.flatMap(fm -> fm.getQueryFieldNames().stream())
-//				.toList();
 	}
 
 }

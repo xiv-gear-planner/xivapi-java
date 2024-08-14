@@ -5,9 +5,11 @@ import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 public final class MappingUtils {
-	private MappingUtils() {}
+	private MappingUtils() {
+	}
 
 	/**
 	 * Given a method, determine the name of the XivApi field to use.
@@ -36,5 +38,16 @@ public final class MappingUtils {
 			throw new RuntimeException("I don't know how to map " + method.getName());
 		}
 		return fieldName;
+	}
+
+	/**
+	 * Check whether a field should have [] suffixed to it in the fields param. i.e. returns true iff the type is
+	 * a list or array.
+	 *
+	 * @param type The type to check
+	 * @return True if list/array.
+	 */
+	public static boolean isArrayQueryType(Class<?> type) {
+		return type.equals(List.class) || type.isArray();
 	}
 }

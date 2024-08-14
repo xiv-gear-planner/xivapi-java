@@ -93,7 +93,6 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 				return null;
 			}
 			if (zeroValue) {
-				// TODO: field-level NullIfZero
 				if (objectType.isAnnotationPresent(NullIfZero.class)) {
 					return null;
 				}
@@ -159,7 +158,6 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 	@Override
 	public List<String> getQueryFieldNames() {
-		// TODO: find a better place to add the list thing
 		return methodFieldMap.values()
 				.stream()
 				.flatMap(fm -> fm.getQueryFieldNames().stream())

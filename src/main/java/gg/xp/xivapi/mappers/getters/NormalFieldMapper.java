@@ -8,6 +8,7 @@ import gg.xp.xivapi.exceptions.XivApiMissingNodeException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
+import gg.xp.xivapi.mappers.util.MappingUtils;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -52,7 +53,7 @@ public class NormalFieldMapper<X> implements FieldMapper<X> {
 	@Override
 	public List<String> getQueryFieldNames() {
 		List<String> inners = innerMapper.getQueryFieldNames();
-		boolean isArray = fieldType.equals(List.class) || fieldType.isArray();
+		boolean isArray = MappingUtils.isArrayQueryType(fieldType);
 		String base = isArray ? fieldName + "[]" : fieldName;
 		if (inners.isEmpty()) {
 			return List.of(base);
