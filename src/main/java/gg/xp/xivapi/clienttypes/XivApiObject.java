@@ -6,4 +6,8 @@ public interface XivApiObject {
 	int getRowId();
 
 	XivApiSchemaVersion getSchemaVersion();
+
+	default boolean isZero() {
+		return getRowId() == 0;
+	}
 }

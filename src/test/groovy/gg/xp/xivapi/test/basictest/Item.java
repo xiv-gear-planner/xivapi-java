@@ -1,11 +1,14 @@
 package gg.xp.xivapi.test.basictest;
 
 import gg.xp.xivapi.annotations.NullIfZero;
+import gg.xp.xivapi.annotations.OmitZeroes;
 import gg.xp.xivapi.annotations.XivApiField;
 import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.annotations.XivApiSheet;
+
+import java.util.List;
 
 // Indicate what sheet should be queried
 @XivApiSheet("Item")
@@ -58,4 +61,30 @@ public interface Item extends XivApiObject {
 
 	ClassJob getClassJobUse();
 
+	// TODO: allow/test @NullIfZero for list types
+	@XivApiField("BaseParam")
+	List<BaseParam> getBaseParamList();
+
+	@XivApiField("BaseParam")
+	BaseParam[] getBaseParamArray();
+
+	@XivApiField("BaseParam")
+	@XivApiRaw
+	List<Integer> getBaseParamRawList();
+
+	// Primitive arrays are NOT supported yet
+	@XivApiField("BaseParam")
+	@XivApiRaw
+	Integer[] getBaseParamRawArray();
+
+	@XivApiField("BaseParam")
+	@OmitZeroes
+	List<BaseParam> getBaseParamListTrunc();
+
+	@XivApiField("BaseParam")
+	List<@OmitZeroes BaseParam> getBaseParamListTrunc2();
+
+	@XivApiField("BaseParam")
+	@OmitZeroes
+	BaseParam[] getBaseParamArrayTrunc();
 }

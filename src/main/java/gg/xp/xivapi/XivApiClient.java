@@ -2,11 +2,11 @@ package gg.xp.xivapi;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gg.xp.xivapi.annotations.XivApiSheet;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.clienttypes.XivApiSchemaVersion;
 import gg.xp.xivapi.clienttypes.XivApiSettings;
 import gg.xp.xivapi.filters.SearchFilter;
+import gg.xp.xivapi.mappers.QueryField;
 import gg.xp.xivapi.mappers.objects.ObjectFieldMapper;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.util.MappingUtils;
@@ -27,9 +27,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 public class XivApiClient implements AutoCloseable {
 	private static final Logger log = LoggerFactory.getLogger(XivApiClient.class);
@@ -112,9 +109,22 @@ public class XivApiClient implements AutoCloseable {
 
 		ObjectFieldMapper<X> mapping = new ObjectFieldMapper<>(cls, mapper);
 
-		List<String> fields = mapping.getQueryFieldNames();
+		List<QueryField> fields = mapping.getQueryFields();
 
-		JsonNode root = sendGET("/sheet/%s/%d?fields=%s".formatted(sheetName, id, String.join(",", fields)));
+		URI uri;
+		try {
+			uri = new URIBuilder(getBaseUri())
+					.appendPath("sheet")
+					.appendPath(sheetName)
+					.appendPath(String.valueOf(id))
+					.addParameters(MappingUtils.formatQueryFields(fields))
+					.build();
+		}
+		catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
+
+		JsonNode root = sendGET(uri);
 
 		XivApiSchemaVersion sv = new XivApiSchemaVersion() {
 			@Override
@@ -141,7 +151,7 @@ public class XivApiClient implements AutoCloseable {
 
 		ObjectFieldMapper<X> mapping = new ObjectFieldMapper<>(cls, mapper);
 
-		List<String> fields = mapping.getQueryFieldNames();
+		List<QueryField> fields = mapping.getQueryFields();
 
 		int perPage = options.getPerPage();
 
@@ -150,7 +160,7 @@ public class XivApiClient implements AutoCloseable {
 			firstPageUri = new URIBuilder(getBaseUri())
 					.appendPath("sheet")
 					.appendPath(sheetName)
-					.setParameter("fields", String.join(",", fields))
+					.addParameters(MappingUtils.formatQueryFields(fields))
 					.setParameter("limit", String.valueOf(perPage))
 					.build();
 		}
@@ -172,7 +182,7 @@ public class XivApiClient implements AutoCloseable {
 
 		ObjectFieldMapper<X> mapping = new ObjectFieldMapper<>(cls, mapper);
 
-		List<String> fields = mapping.getQueryFieldNames();
+		List<QueryField> fields = mapping.getQueryFields();
 
 		int perPage = options.getPerPage();
 
@@ -180,11 +190,11 @@ public class XivApiClient implements AutoCloseable {
 		try {
 			firstPageUri = new URIBuilder(getBaseUri())
 					.appendPath("search")
-					// TODO: doesn't support multi-sheet searching
+					// TODO: doesn't support multi-sheet searching yet
 					.setParameter("sheets", sheetName)
 					.setParameter("query", filter.toFilterString())
-					.setParameter("fields", String.join(",", fields))
 					.setParameter("limit", String.valueOf(perPage))
+					.addParameters(MappingUtils.formatQueryFields(fields))
 					.build();
 		}
 		catch (URISyntaxException e) {

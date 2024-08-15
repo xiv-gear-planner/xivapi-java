@@ -69,7 +69,7 @@ public abstract sealed class XivApiPaginator<X extends XivApiObject> implements 
 	}
 
 	protected boolean hasMorePages() {
-		return currentPage.size() < perPageItemCount;
+		return currentPage.size() >= perPageItemCount;
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public abstract sealed class XivApiPaginator<X extends XivApiObject> implements 
 			this.rootNode = root;
 			JsonNode rows = getResultsNode(rootNode);
 			if (rows == null) {
-				throw new XivApiDeserializationException("Missing 'rows' field in response");
+				throw new XivApiDeserializationException("Missing main results field in response");
 			}
 			XivApiSchemaVersion sv = new XivApiSchemaVersion() {
 				@Override

@@ -7,6 +7,7 @@ import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.clienttypes.XivApiStruct;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
+import gg.xp.xivapi.mappers.QueryField;
 import gg.xp.xivapi.mappers.getters.FlatFieldMapper;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 import org.slf4j.Logger;
@@ -90,7 +91,7 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public List<String> getQueryFieldNames() {
+	public List<QueryField> getQueryFields() {
 		// Xivapi does not support filtering sub-fields in simple structs - only in real sheet objects.
 		return List.of();
 	}

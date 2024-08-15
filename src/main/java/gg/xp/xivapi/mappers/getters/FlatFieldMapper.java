@@ -5,22 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
+import gg.xp.xivapi.mappers.QueryField;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.List;
 
 public class FlatFieldMapper<X> implements FieldMapper<X> {
 	private final String fieldName;
-	private final Class<X> fieldType;
-	private final ObjectMapper mapper;
 	private final AutoValueMapper<X> innerMapper;
 
 	public FlatFieldMapper(String fieldName, Class<X> fieldType, Method method, ObjectMapper mapper) {
 		this.fieldName = fieldName;
-		this.fieldType = fieldType;
-		this.mapper = mapper;
-		this.innerMapper = new AutoValueMapper<>(fieldType, method.getGenericReturnType(), mapper);
+		this.innerMapper = new AutoValueMapper<>(fieldType, method, method.getGenericReturnType(), mapper);
 	}
 
 	@Override
@@ -35,7 +31,8 @@ public class FlatFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public List<String> getQueryFieldNames() {
-		return Collections.emptyList();
+	public List<QueryField> getQueryFields() {
+		// These are not filterable, so return nothing
+		return List.of();
 	}
 }

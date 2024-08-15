@@ -3,10 +3,20 @@ package gg.xp.xivapi.mappers.util;
 import gg.xp.xivapi.annotations.XivApiField;
 import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiSheet;
+import gg.xp.xivapi.annotations.XivApiTransientField;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
+import gg.xp.xivapi.mappers.QueryField;
+import gg.xp.xivapi.mappers.QueryFieldType;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class MappingUtils {
 	private MappingUtils() {
@@ -22,14 +32,18 @@ public final class MappingUtils {
 	public static String getFieldName(Method method) {
 		String fieldName;
 		XivApiField fieldAnnotation = method.getAnnotation(XivApiField.class);
-		XivApiMetaField metaFieldAnn = method.getAnnotation(XivApiMetaField.class);
 		if (fieldAnnotation != null) {
-			fieldName = fieldAnnotation.value();
+			return fieldAnnotation.value();
 		}
-		else if (metaFieldAnn != null) {
-			fieldName = metaFieldAnn.value();
+		XivApiMetaField metaFieldAnn = method.getAnnotation(XivApiMetaField.class);
+		if (metaFieldAnn != null) {
+			return metaFieldAnn.value();
 		}
-		else if (method.getName().startsWith("get")) {
+		XivApiTransientField transAnn = method.getAnnotation(XivApiTransientField.class);
+		if (transAnn != null && !transAnn.value().isEmpty()) {
+			return transAnn.value();
+		}
+		if (method.getName().startsWith("get")) {
 			fieldName = method.getName().substring(3);
 		}
 		else if (method.getName().startsWith("is")) {
@@ -71,5 +85,32 @@ public final class MappingUtils {
 		}
 
 		return value;
+	}
+
+	public static List<NameValuePair> formatQueryFields(Collection<QueryField> fields) {
+		Map<QueryFieldType, List<QueryField>> grouped = fields.stream().collect(Collectors.groupingBy(QueryField::type));
+		return List.of(
+				new BasicNameValuePair("fields", grouped.getOrDefault(QueryFieldType.Field, List.of())
+						.stream()
+						.map(QueryField::name)
+						.collect(Collectors.joining(","))),
+				new BasicNameValuePair("transient", grouped.getOrDefault(QueryFieldType.TransientField, List.of())
+						.stream()
+						.map(QueryField::name)
+						.collect(Collectors.joining(",")))
+		);
+	}
+
+	public static Class<?> parameterizedTypeToRawClass(Type typeOriginal) {
+		Type type = typeOriginal;
+		while (type instanceof ParameterizedType pt) {
+			type = pt.getRawType();
+		}
+		if (type instanceof Class cls) {
+			return cls;
+		}
+		else {
+			throw new IllegalArgumentException("Cannot determine base type for " + typeOriginal);
+		}
 	}
 }

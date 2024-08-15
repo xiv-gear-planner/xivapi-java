@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * if the primary key of the item is zero.
  * <p>
  * This can be applied to an interface, indicating that whenever it is used as a return type, a zero value should
- * become null. It can also be applied to the getter itself.
+ * become null. It can also be applied to the getter itself to control this behavior on a per-field level.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})

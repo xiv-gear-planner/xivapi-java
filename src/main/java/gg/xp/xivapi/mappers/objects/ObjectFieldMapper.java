@@ -5,13 +5,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.annotations.NullIfZero;
 import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiRaw;
+import gg.xp.xivapi.annotations.XivApiTransientField;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.exceptions.XivApiDeserializationException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
+import gg.xp.xivapi.mappers.QueryField;
 import gg.xp.xivapi.mappers.getters.MetaFieldMapper;
 import gg.xp.xivapi.mappers.getters.NormalFieldMapper;
 import gg.xp.xivapi.mappers.getters.RawFieldMapper;
+import gg.xp.xivapi.mappers.getters.RawTransientFieldMapper;
+import gg.xp.xivapi.mappers.getters.TransientFieldMapper;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,25 +60,33 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			Class<?> returnType = method.getReturnType();
 
 			XivApiMetaField metaFieldAnn = method.getAnnotation(XivApiMetaField.class);
+			XivApiTransientField transientFieldAnn = method.getAnnotation(XivApiTransientField.class);
 			String fieldName = MappingUtils.getFieldName(method);
 
 			FieldMapper<?> fieldMapper;
-			if (method.isAnnotationPresent(XivApiRaw.class)) {
-				fieldMapper = new RawFieldMapper<>(fieldName, returnType, method, mapper);
-			}
-			else if (metaFieldAnn != null) {
+			// TODO: XivApiRaw should be applicable to both normal fields and transient fields
+			if (metaFieldAnn != null) {
 				fieldMapper = new MetaFieldMapper<>(fieldName, returnType, method, mapper);
 			}
+			else if (transientFieldAnn != null) {
+				if (method.isAnnotationPresent(XivApiRaw.class)) {
+					fieldMapper = new RawTransientFieldMapper<>(fieldName, returnType, method, mapper);
+				}
+				else {
+					fieldMapper = new TransientFieldMapper<>(fieldName, returnType, method, mapper);
+				}
+			}
 			else {
-				fieldMapper = new NormalFieldMapper<>(fieldName, returnType, method, mapper);
+				if (method.isAnnotationPresent(XivApiRaw.class)) {
+					fieldMapper = new RawFieldMapper<>(fieldName, returnType, method, mapper);
+				}
+				else {
+					fieldMapper = new NormalFieldMapper<>(fieldName, returnType, method, mapper);
+				}
 			}
 			methodFieldMap.put(method, fieldMapper);
 
 		}
-	}
-
-	public Class<X> getObjectType() {
-		return objectType;
 	}
 
 	@Override
@@ -170,10 +182,10 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public List<String> getQueryFieldNames() {
+	public List<QueryField> getQueryFields() {
 		return methodFieldMap.values()
 				.stream()
-				.flatMap(fm -> fm.getQueryFieldNames().stream())
+				.flatMap(fm -> fm.getQueryFields().stream())
 				.toList();
 	}
 

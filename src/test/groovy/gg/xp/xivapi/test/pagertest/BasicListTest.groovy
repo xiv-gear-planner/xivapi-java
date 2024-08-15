@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 @CompileStatic
 class BasicListTest {
 
+	// This also tests transients
 	@Test
 	void testList() {
 		var client = new XivApiClient()
@@ -17,11 +18,24 @@ class BasicListTest {
 
 		List<AozAction> dumped = IteratorUtils.toList(actions)
 
+		int minExpectedSize = 125
+
+		if (dumped.size() < minExpectedSize) {
+			Assertions.fail("AozActoin list was too small (${dumped.size()}, expected ${minExpectedSize})")
+		}
+
 		Assertions.assertEquals(0, dumped[0].rowId)
 		Assertions.assertEquals("", dumped[0].action.name)
 
 		Assertions.assertEquals(1, dumped[1].rowId)
 		Assertions.assertEquals("Snort", dumped[1].action.name)
+
+		Assertions.assertEquals(5, dumped[5].rowId)
+		Assertions.assertEquals("High Voltage", dumped[5].action.name)
+		Assertions.assertEquals(72205, dumped[5].icon.id)
+		Assertions.assertEquals(93, dumped[5].location)
+		Assertions.assertTrue(dumped[5].description().startsWith("An industrial form of machina-based"))
+
 
 		Assertions.assertEquals(98, dumped[98].rowId)
 

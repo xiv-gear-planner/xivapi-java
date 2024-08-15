@@ -86,13 +86,16 @@ Item item = client.getById(Item.class, 44096);
 - as(raw)
 - Iterating over a sheet
 - Basic searching
+- Transients
+- List and array types
 
 ### Not Complete
 
-- List and array types
 - Schema versions
 - Cache mappings so they don't have to be recomputed
 - Multiple languages
-- Transients
-- Searching based on method references (e.g. something like  `equals(Item::getName, "My Item")`)
+- Querying based on method references (e.g. something like  `equals(Item::getName, "My Item")`)
+- Multi-sheet searching
 - Iteration prefetch
+- Other forms of iterator (streams, lists, etc)
+- Groovy DSLs

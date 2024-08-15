@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 class BasicSearchTest {
 
 	@Test
-	void testList() {
+	void testSearch() {
 		// Not going to inspect much in this list, because there's no guarantee of order
 		var client = new XivApiClient()
 		Iterator<Item> itemsIter = client.getSearchIterator(Item,
@@ -44,7 +44,7 @@ class BasicSearchTest {
 
 
 	@Test
-	void testStopCondition() {
+	void testSearchStopCondition() {
 		// Not going to inspect much in this list, because there's no guarantee of order
 		var client = new XivApiClient()
 		Iterator<Item> itemsIterNoStop = client.getSearchIterator(Item,

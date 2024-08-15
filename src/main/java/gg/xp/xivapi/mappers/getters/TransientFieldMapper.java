@@ -13,32 +13,33 @@ import gg.xp.xivapi.mappers.util.MappingUtils;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class NormalFieldMapper<X> implements FieldMapper<X> {
+public class TransientFieldMapper<X> implements FieldMapper<X> {
 	private final String fieldName;
 	private final Class<X> fieldType;
+	private final ObjectMapper mapper;
 	private final FieldMapper<X> innerMapper;
 	private final Method method;
 
-	public NormalFieldMapper(String fieldName, Class<X> fieldType, Method method, ObjectMapper mapper) {
+	public TransientFieldMapper(String fieldName, Class<X> fieldType, Method method, ObjectMapper mapper) {
 		this.fieldName = fieldName;
 		this.fieldType = fieldType;
+		this.mapper = mapper;
 		this.method = method;
 		this.innerMapper = new AutoValueMapper<>(fieldType, method, method.getGenericReturnType(), mapper);
 	}
 
 	@Override
 	public X getValue(JsonNode current, XivApiContext context) {
-		// TODO: add this level of error checking to the rest of them
 		if (current == null) {
 			throw new XivApiMissingNodeException("'current' is null", null, fieldType, method);
 		}
-		var fieldsNode = current.get("fields");
-		if (fieldsNode == null) {
-			throw new XivApiMissingNodeException("'fields' node is missing", current, fieldType, method);
+		var transientFieldsNode = current.get("transient");
+		if (transientFieldsNode == null) {
+			throw new XivApiMissingNodeException("'transient' node is missing", current, fieldType, method);
 		}
-		var fieldNode = fieldsNode.get(fieldName);
+		var fieldNode = transientFieldsNode.get(fieldName);
 		if (fieldNode == null) {
-			throw new XivApiMissingNodeException("Missing field node for field " + fieldName, fieldsNode, fieldType, method);
+			throw new XivApiMissingNodeException("Missing transient field node for field " + fieldName, transientFieldsNode, fieldType, method);
 		}
 		try {
 			return innerMapper.getValue(fieldNode, context);
@@ -50,11 +51,12 @@ public class NormalFieldMapper<X> implements FieldMapper<X> {
 
 	@Override
 	public List<QueryField> getQueryFields() {
+		// TODO: this needs to populate a different key in the query
 		List<QueryField> inners = innerMapper.getQueryFields();
 		boolean isArray = MappingUtils.isArrayQueryType(fieldType);
 		String base = isArray ? fieldName + "[]" : fieldName;
 		if (inners.isEmpty()) {
-			return List.of(QueryField.normalField(base));
+			return List.of(QueryField.transientField(base));
 		}
 		else {
 			return inners.stream().map(inner -> inner.withPrefixPart(base)).toList();

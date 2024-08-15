@@ -49,74 +49,76 @@ class WeaponItemTest {
 		Assertions.assertEquals(null, item.itemAction)
 	}
 
-//	@Test
-//	void testId() {
-//		Assertions.assertEquals(44096, item.id)
-//	}
-//
-//	@Test
-//	void testRowId() {
-//		Assertions.assertEquals(44096, item.rowId)
-//	}
-//
-//	@Test
-//	void testRowIdAlt() {
-//		Assertions.assertEquals(44096, item.rowIdAlt)
-//	}
-//
-//	@Test
-//	void testName() {
-//		Assertions.assertEquals("Vegetable Soup", item.name)
-//	}
-//
-//	@Test
-//	void testPluralName() {
-//		Assertions.assertEquals("bowls of vegetable soup", item.pluralName())
-//	}
-//
-//	@Test
-//	void testPluralName2() {
-//		Assertions.assertEquals("bowls of vegetable soup", item.pluralName)
-//	}
-//
-//	@Test
-//	void testRarity() {
-//		Assertions.assertEquals(1, item.rarity)
-//	}
-//
-//	@Test
-//	void testLevelItem() {
-//		Assertions.assertEquals(690, item.levelItem)
-//	}
-//
-//	@Test
-//	void testDesynth() {
-//		Assertions.assertEquals(false, item.desynth)
-//	}
-//
-//	@Test
-//	void testNameSize() {
-//		Assertions.assertEquals("Vegetable Soup".length(), item.nameSize)
-//	}
-//
-//	@Test
-//	void testItemActionId() {
-//		Assertions.assertEquals(2526, item.itemAction.id)
-//	}
-//
-//	@Test
-//	void testItemActionCondBattle() {
-//		Assertions.assertEquals(true, item.itemAction.condBattle)
-//	}
-//
-//	@Test
-//	void testItemActionType() {
-//		Assertions.assertEquals(845, item.itemAction.type())
-//	}
-//
-//	@Test
-//	void testIconId() {
-//		Assertions.assertEquals(24103, item.icon.id)
-//	}
+	@Test
+	void testBaseParamRawList() {
+		Assertions.assertEquals([5, 3, 27, 44, 0, 0], item.baseParamRawList)
+	}
+
+	@Test
+	void testBaseParamRawArray() {
+		Assertions.assertEquals([5, 3, 27, 44, 0, 0], item.baseParamRawArray.toList())
+	}
+
+	@Test
+	void testBaseParamList() {
+		List<BaseParam> baseParams = item.baseParamList
+		Assertions.assertEquals(6, item.baseParamList.size())
+		BaseParam firstParam = baseParams[0]
+		Assertions.assertEquals(5, firstParam.rowId)
+
+		Assertions.assertEquals([90, 70, 70, 70, 70, 70, 100, 70, 100, 100, 70, 70, 70], firstParam.meldParams)
+
+		Assertions.assertEquals(0, baseParams[4].rowId)
+		Assertions.assertEquals(0, baseParams[5].rowId)
+	}
+
+	@Test
+	void testBaseParamArray() {
+		BaseParam[] baseParams = item.baseParamArray
+		Assertions.assertEquals(6, item.baseParamArray.size())
+		BaseParam firstParam = baseParams[0]
+		Assertions.assertEquals(5, firstParam.rowId)
+
+		Assertions.assertEquals([90, 70, 70, 70, 70, 70, 100, 70, 100, 100, 70, 70, 70], firstParam.meldParams)
+
+		Assertions.assertEquals(0, baseParams[4].rowId)
+		Assertions.assertEquals(0, baseParams[5].rowId)
+	}
+
+	@Test
+	void testBaseParamListTrunc() {
+		List<BaseParam> baseParams = item.baseParamListTrunc
+		Assertions.assertEquals(4, baseParams.size())
+		BaseParam firstParam = baseParams[0]
+		Assertions.assertEquals(5, firstParam.rowId)
+
+		Assertions.assertEquals([90, 70, 70, 70, 70, 70, 100, 70, 100, 100, 70, 70, 70], firstParam.meldParams)
+
+		Assertions.assertTrue(baseParams.every {it.rowId != 0})
+	}
+
+	@Test
+	void testBaseParamListTrunc2() {
+		List<BaseParam> baseParams = item.baseParamListTrunc2
+		Assertions.assertEquals(4, baseParams.size())
+		BaseParam firstParam = baseParams[0]
+		Assertions.assertEquals(5, firstParam.rowId)
+
+		Assertions.assertEquals([90, 70, 70, 70, 70, 70, 100, 70, 100, 100, 70, 70, 70], firstParam.meldParams)
+
+		Assertions.assertTrue(baseParams.every {it.rowId != 0})
+	}
+
+	@Test
+	void testBaseParamArrayTrunc() {
+		BaseParam[] baseParams = item.baseParamArrayTrunc
+		Assertions.assertEquals(4, baseParams.size())
+		BaseParam firstParam = baseParams[0]
+		Assertions.assertEquals(5, firstParam.rowId)
+
+		Assertions.assertEquals([90, 70, 70, 70, 70, 70, 100, 70, 100, 100, 70, 70, 70], firstParam.meldParams)
+
+		Assertions.assertTrue(baseParams.every {it.rowId != 0})
+	}
 
 }

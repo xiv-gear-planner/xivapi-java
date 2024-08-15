@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.impl.XivApiContext;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ public class BasicValueMapper<X> implements FieldMapper<X> {
 	private final Class<X> fieldType;
 	private final ObjectMapper mapper;
 
-	public BasicValueMapper(Class<X> fieldType, ObjectMapper mapper) {
+	public BasicValueMapper(Class<X> fieldType, Method method, ObjectMapper mapper) {
 		this.fieldType = fieldType;
 		this.mapper = mapper;
 	}
@@ -32,7 +33,7 @@ public class BasicValueMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public List<String> getQueryFieldNames() {
+	public List<QueryField> getQueryFields() {
 		// At this point the field has already been selected, so nothing to do.
 		return List.of();
 	}
