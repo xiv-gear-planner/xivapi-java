@@ -72,7 +72,7 @@ Then, to query for a specific item, simply do:
 
 ```java
 var client = new XivApiClient();
-Item item = client.getById(Item, 44096);
+Item item = client.getById(Item.class, 44096);
 ```
 
 
