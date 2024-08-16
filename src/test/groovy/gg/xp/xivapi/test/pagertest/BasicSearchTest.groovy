@@ -1,6 +1,7 @@
 package gg.xp.xivapi.test.pagertest
 
 import gg.xp.xivapi.XivApiClient
+import gg.xp.xivapi.clienttypes.XivApiSettings
 import gg.xp.xivapi.filters.SearchFilters
 import gg.xp.xivapi.pagination.ListOptions
 import gg.xp.xivapi.test.basictest.Item
@@ -12,10 +13,14 @@ import org.junit.jupiter.api.Test
 @CompileStatic
 class BasicSearchTest {
 
+	private static final String schemaVersion = "exdschema@5f292f39f3deab2c43bee62b202b54ebf51e15b7-2024.08.02.0000.0000"
 	@Test
 	void testSearch() {
 		// Not going to inspect much in this list, because there's no guarantee of order
-		var client = new XivApiClient()
+		var client = new XivApiClient({ XivApiSettings.Builder it ->
+			it.schemaVersion = schemaVersion
+			it.gameVersion = "7.05"
+		})
 		Iterator<Item> itemsIter = client.getSearchIterator(Item,
 				SearchFilters.and("LevelItem>=700", "LevelItem<=710", "ClassJobCategory.WHM=1"),
 				ListOptions.newBuilder().with {

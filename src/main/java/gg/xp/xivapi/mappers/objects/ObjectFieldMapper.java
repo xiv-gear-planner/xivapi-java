@@ -6,8 +6,10 @@ import gg.xp.xivapi.annotations.NullIfZero;
 import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.annotations.XivApiTransientField;
+import gg.xp.xivapi.clienttypes.XivApiBase;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.exceptions.XivApiDeserializationException;
+import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.QueryField;
@@ -27,6 +29,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Mapper for full sheet objects, both top-level and nested.
+ * <p>
+ * The general flow is:
+ * <ul>
+ *     <li>Look at the class and find the common methods (primary key, row id, schema version)</li>
+ *     <li>Look at every non-default method and find an appropriate field mapper for it, and store this into a map.</li>
+ *     <li>When we want to actually deserialize an object, consult this map and construct a proxy object.</li>
+ * </ul>
+ *
+ * @param <X> The object type
+ */
 public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 	private static final Logger log = LoggerFactory.getLogger(ObjectFieldMapper.class);
@@ -34,41 +48,47 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 	private final Class<X> objectType;
 	private final Method pkMethod;
 	private final Method ridMethod;
+	private final Method svMethod;
+	private final Method tsMethod;
 
 	public ObjectFieldMapper(Class<X> cls, ObjectMapper mapper) {
 		this.objectType = cls;
 		try {
+			// Common methods
 			pkMethod = cls.getMethod("getPrimaryKey");
-//			methodFieldMap.put(pkMethod, new MetaFieldMapper<>("value", int.class, pkMethod, mapper));
 			ridMethod = cls.getMethod("getRowId");
-//			methodFieldMap.put(ridMethod, new MetaFieldMapper<>("row_id", int.class, ridMethod, mapper));
+			svMethod = XivApiBase.class.getMethod("getSchemaVersion");
+			tsMethod = Object.class.getMethod("toString");
 		}
 		catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
+			throw new XivApiException(e);
 		}
 		for (Method method : cls.getMethods()) {
-			if (method.getDeclaringClass().equals(XivApiObject.class)) {
-				// These are handled already
+			if (method.getDeclaringClass().isAssignableFrom(XivApiObject.class)) {
+				// The methods declared at the XivApiObject level or higher are the "Common methods" referenced above
 				continue;
 			}
 
-			// Ignore default methods
+			// Default methods do not need to be mapped. They will behave as expected.
 			if (method.isDefault()) {
 				continue;
 			}
 
 			Class<?> returnType = method.getReturnType();
 
+			// By default, we want to use NormalFieldMapper, unless there is an annotation to specify otherwise.
 			XivApiMetaField metaFieldAnn = method.getAnnotation(XivApiMetaField.class);
 			XivApiTransientField transientFieldAnn = method.getAnnotation(XivApiTransientField.class);
 			String fieldName = MappingUtils.getFieldName(method);
 
 			FieldMapper<?> fieldMapper;
-			// TODO: XivApiRaw should be applicable to both normal fields and transient fields
+
 			if (metaFieldAnn != null) {
+				// If it is a meta field (value, row_id, score, etc), use MetaFieldMapper
 				fieldMapper = new MetaFieldMapper<>(fieldName, returnType, method, mapper);
 			}
 			else if (transientFieldAnn != null) {
+				// If transient, map accordingly
 				if (method.isAnnotationPresent(XivApiRaw.class)) {
 					fieldMapper = new RawTransientFieldMapper<>(fieldName, returnType, method, mapper);
 				}
@@ -77,6 +97,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 				}
 			}
 			else {
+				// Normal field
 				if (method.isAnnotationPresent(XivApiRaw.class)) {
 					fieldMapper = new RawFieldMapper<>(fieldName, returnType, method, mapper);
 				}
@@ -101,12 +122,15 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			boolean isNested = current != context.getRootNode();
 			if (isNested) {
 				boolean zeroValue = current.get("value").asInt() == 0;
+				// TODO: double check this logic
 				if (zeroValue
 				    && (current.get("row_id") == null
 				        || current.get("fields") == null
 				        || current.get("fields").isEmpty())) {
 					return null;
 				}
+				// If the interface we are trying to deserialize is annotated with @NullIfZero, then it is okay
+				// to return a null if the 'value' (cross-sheet reference) is zero
 				if (zeroValue) {
 					if (objectType.isAnnotationPresent(NullIfZero.class)) {
 						return null;
@@ -121,7 +145,12 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 				rowId = primaryKey = current.get("row_id").asInt();
 			}
 
-
+			methodValueMap.put(pkMethod, primaryKey);
+			methodValueMap.put(ridMethod, rowId);
+			methodValueMap.put(svMethod, context.getSchemaVersion());
+			methodValueMap.put(tsMethod, "%s(%s)".formatted(objectType.getSimpleName(), rowId));
+			// Go through the method -> field map, deserialize each field into its respective type, and then
+			// assemble a method -> value map.
 			methodFieldMap.forEach((method, fieldMapper) -> {
 				Object value = fieldMapper.getValue(current, context);
 				methodValueMap.put(method, value);
@@ -131,53 +160,10 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			throw new XivApiDeserializationException("Error deserializing %s from '%s'".formatted(objectType, current), t);
 		}
 
-
-		// TODO: validate that every method is either default or has a value
+		boolean strict = context.getSettings().isStrict();
 
 		//noinspection unchecked
-		return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, (proxy, method, args) -> {
-			// Don't override any default methods
-			if (method.isDefault()) {
-				return InvocationHandler.invokeDefault(proxy, method, args);
-			}
-
-			// Custom toString()
-			if (method.getName().equals("toString") && method.getParameterCount() == 0) {
-				int id = ((XivApiObject) proxy).getPrimaryKey();
-				return "%s(%s)".formatted(objectType.getSimpleName(), id);
-			}
-
-			if (method.equals(pkMethod)) {
-				return primaryKey;
-			}
-			if (method.equals(ridMethod)) {
-				return rowId;
-			}
-
-			// TODO: strict mode where this is an error
-
-			Object value = methodValueMap.get(method);
-			if (value == null) {
-				if (method.getReturnType().isPrimitive()) {
-					log.error("Null primitive field! {}", method.getName());
-					return 0;
-				}
-				else {
-					if (!method.isAnnotationPresent(NullIfZero.class)
-					    || method.getReturnType().isAnnotationPresent(NullIfZero.class)) {
-						log.error("Null object field! {}", method.getName());
-					}
-				}
-			}
-
-			if (value instanceof XivApiObject xao) {
-				if (xao.getPrimaryKey() == 0 && method.isAnnotationPresent(NullIfZero.class)) {
-					return null;
-				}
-			}
-
-			return value;
-		});
+		return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, new ObjectInvocationHandler(methodValueMap, strict));
 
 	}
 

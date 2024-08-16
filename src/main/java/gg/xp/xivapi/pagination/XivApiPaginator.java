@@ -7,12 +7,17 @@ import gg.xp.xivapi.clienttypes.XivApiSchemaVersion;
 import gg.xp.xivapi.exceptions.XivApiDeserializationException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
+import gg.xp.xivapi.mappers.util.MappingUtils;
+import org.apache.commons.collections4.IteratorUtils;
 
 import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.BiPredicate;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -93,12 +98,7 @@ public abstract sealed class XivApiPaginator<X extends XivApiObject> implements 
 			if (rows == null) {
 				throw new XivApiDeserializationException("Missing main results field in response");
 			}
-			XivApiSchemaVersion sv = new XivApiSchemaVersion() {
-				@Override
-				public String fullVersionString() {
-					return root.get("schema").textValue();
-				}
-			};
+			XivApiSchemaVersion sv = MappingUtils.makeSchemaVersion(root.get("schema").textValue());
 			Iterable<JsonNode> iter = rows::elements;
 			values = StreamSupport.stream(iter.spliterator(), false)
 					.map(node -> {
@@ -145,4 +145,26 @@ public abstract sealed class XivApiPaginator<X extends XivApiObject> implements 
 			return values.size();
 		}
 	}
+
+	public List<X> toList() {
+		return IteratorUtils.toList(this);
+	}
+
+	public Stream<X> stream() {
+		return StreamSupport.stream(
+				Spliterators.spliteratorUnknownSize(this, Spliterator.ORDERED),
+				false);
+	}
+
+	public Iterator<X> toBufferedIterator(int bufferSize) {
+		return new BufferedIterator<>(this, bufferSize);
+	}
+
+	public Stream<X> toBufferedStream(int bufferSize) {
+		return StreamSupport.stream(
+				Spliterators.spliteratorUnknownSize(toBufferedIterator(bufferSize), Spliterator.ORDERED),
+				false);
+	}
+
+
 }

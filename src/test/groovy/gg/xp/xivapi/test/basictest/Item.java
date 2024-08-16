@@ -12,7 +12,7 @@ import java.util.List;
 
 // Indicate what sheet should be queried
 @XivApiSheet("Item")
-public interface Item extends XivApiObject {
+public interface Item extends XivApiObject, HasIcon {
 	// TODO: arrays
 	// TODO: schema version
 
@@ -37,7 +37,8 @@ public interface Item extends XivApiObject {
 	int getRarity();
 
 	// flat struct
-	Icon getIcon();
+	// moved to HasIcon to test inheritance
+//	Icon getIcon();
 
 	// Not interesting since this is a food item
 	@NullIfZero

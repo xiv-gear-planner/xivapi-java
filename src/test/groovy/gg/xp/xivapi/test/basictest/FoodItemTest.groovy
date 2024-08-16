@@ -1,6 +1,7 @@
 package gg.xp.xivapi.test.basictest
 
 import gg.xp.xivapi.XivApiClient
+import gg.xp.xivapi.clienttypes.XivApiSettings
 import gg.xp.xivapi.debug.DebugUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -12,11 +13,17 @@ import org.junit.jupiter.api.Test
 @CompileStatic
 class FoodItemTest {
 
+	private static final String schemaVersion = "exdschema@5f292f39f3deab2c43bee62b202b54ebf51e15b7-2024.08.02.0000.0000"
+	static XivApiClient client
 	static Item item
 
 	@BeforeAll
 	static void setup() {
-		var client = new XivApiClient()
+		var client = new XivApiClient({ XivApiSettings.Builder it ->
+			it.schemaVersion = schemaVersion
+			it.gameVersion = "7.05"
+		})
+		FoodItemTest.client = client
 		def item = client.getById(Item, 44096)
 		FoodItemTest.item = item
 		log.info item.toString()
@@ -44,6 +51,16 @@ class FoodItemTest {
 	@Test
 	void testRowId() {
 		Assertions.assertEquals(44096, item.rowId)
+	}
+
+	@Test
+	void testToString() {
+		Assertions.assertEquals("Item(44096)", item.toString())
+	}
+
+	@Test
+	void testSchemaVersion() {
+		Assertions.assertEquals(schemaVersion, item.schemaVersion.fullVersionString())
 	}
 
 	@Test
@@ -112,6 +129,11 @@ class FoodItemTest {
 	}
 
 	@Test
+	void testIconSchemaVersion() {
+		Assertions.assertEquals(schemaVersion, item.icon.schemaVersion.fullVersionString())
+	}
+
+	@Test
 	void testClassJobCategory() {
 		Assertions.assertEquals(null, item.classJobCategory)
 	}
@@ -119,6 +141,37 @@ class FoodItemTest {
 	@Test
 	void testClassJobCategoryNotNull() {
 		Assertions.assertEquals(0, item.classJobCategoryNotNull.rowId)
+	}
+
+	@Test
+	void testClassJobCategorySchemaVersion() {
+		Assertions.assertEquals(schemaVersion, item.classJobCategoryNotNull.schemaVersion.fullVersionString())
+	}
+
+	@Test
+	void testDefaultJavaMethods() {
+		log.info("Start")
+		synchronized (item) {
+			log.info("2")
+			item.notifyAll()
+			log.info("3")
+		}
+		log.info("4")
+		item.hashCode()
+		Assertions.assertEquals(item, item)
+		Assertions.assertFalse(item == null)
+	}
+
+	@Test
+	void testEquality() {
+
+		Item sameItem = client.getById(Item, 44096)
+
+		Assertions.assertEquals(sameItem, item)
+
+		Item differentItem = client.getById(Item, 43333)
+
+		Assertions.assertNotEquals(differentItem, item)
 	}
 
 }

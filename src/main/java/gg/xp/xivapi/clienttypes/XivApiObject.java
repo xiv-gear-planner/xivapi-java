@@ -1,11 +1,9 @@
 package gg.xp.xivapi.clienttypes;
 
-public interface XivApiObject {
+public interface XivApiObject extends XivApiBase {
 	int getPrimaryKey();
 
 	int getRowId();
-
-	XivApiSchemaVersion getSchemaVersion();
 
 	default boolean isZero() {
 		return getRowId() == 0;

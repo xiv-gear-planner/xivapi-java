@@ -1,5 +1,4 @@
 package gg.xp.xivapi.clienttypes;
 
-public interface XivApiStruct {
-	XivApiSchemaVersion getSchemaVersion();
+public interface XivApiStruct extends XivApiBase {
 }

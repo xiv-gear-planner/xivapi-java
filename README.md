@@ -88,14 +88,15 @@ Item item = client.getById(Item.class, 44096);
 - Basic searching
 - Transients
 - List and array types
+- Schema versions
+- Cache mappings so they don't have to be recomputed
 
 ### Not Complete
 
-- Schema versions
-- Cache mappings so they don't have to be recomputed
 - Multiple languages
 - Querying based on method references (e.g. something like  `equals(Item::getName, "My Item")`)
 - Multi-sheet searching
 - Iteration prefetch
 - Other forms of iterator (streams, lists, etc)
 - Groovy DSLs
+- Publish package

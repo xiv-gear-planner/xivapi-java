@@ -4,6 +4,7 @@ import gg.xp.xivapi.annotations.XivApiField;
 import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiSheet;
 import gg.xp.xivapi.annotations.XivApiTransientField;
+import gg.xp.xivapi.clienttypes.XivApiSchemaVersion;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
 import gg.xp.xivapi.mappers.QueryField;
 import gg.xp.xivapi.mappers.QueryFieldType;
@@ -13,9 +14,11 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public final class MappingUtils {
@@ -111,6 +114,48 @@ public final class MappingUtils {
 		}
 		else {
 			throw new IllegalArgumentException("Cannot determine base type for " + typeOriginal);
+		}
+	}
+
+	private record XivApiSchemaImpl(String version) implements XivApiSchemaVersion {
+		@Override
+		public String fullVersionString() {
+			return version;
+		}
+	}
+
+	public static XivApiSchemaVersion makeSchemaVersion(String version) {
+		return new XivApiSchemaImpl(version);
+	}
+
+	public static boolean methodMapEquals(Map<Method, Object> left, Map<Method, Object> right) {
+		if (!Objects.equals(left.keySet(), right.keySet())) {
+			return false;
+		}
+		for (var entry : left.entrySet()) {
+			Object leftValue = entry.getValue();
+			Object rightValue = right.get(entry.getKey());
+			if (!unknownValueEquals(leftValue, rightValue)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	// TODO: unit tests
+	public static boolean unknownValueEquals(Object left, Object right) {
+		if (left == null && right == null) {
+			return true;
+		}
+		else if (left == null || right == null) {
+			return false;
+		}
+		else if (left.getClass().isArray() && right.getClass().isArray()) {
+			// TODO: can this handle a primitive array?
+			return Arrays.equals((Object[]) left, (Object[]) right);
+		}
+		else {
+			return Objects.equals(left, right);
 		}
 	}
 }
