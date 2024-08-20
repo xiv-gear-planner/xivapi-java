@@ -1,0 +1,55 @@
+name: Publish package to GitHub Packages
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'oracle'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+
+      - name: Remove -SNAPSHOT suffix
+        run: ./gradlew removeSnapshotSuffix
+
+      - name: Build and Test
+        run: ./gradlew clean build
+
+      - name: Publish to GitHub Packages
+        if: success()
+        run: ./gradlew publish
+
+      - name: Get the current version
+        id: get_version
+        run: echo "RELEASE_VERSION=$(./gradlew -q printVersion)" >> $GITHUB_ENV
+
+      - name: Bump version to next patch and add -SNAPSHOT suffix
+        if: success()
+        run: ./gradlew bumpVersion
+
+      - name: Commit & Push changes
+        if: success()
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: success()
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          release_name: ${{ env.RELEASE_VERSION }}
+          body: |
+            Release of version ${{ env.RELEASE_VERSION }}.
+          draft: false
+          prerelease: false

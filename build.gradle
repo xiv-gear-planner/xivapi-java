@@ -1,3 +1,5 @@
+import java.util.regex.Pattern
+
 plugins {
 	// Only used for tests
 	id 'groovy'
@@ -8,7 +10,6 @@ plugins {
 }
 
 group = 'gg.xp'
-version = '1.0-SNAPSHOT'
 
 repositories {
 	mavenCentral()
@@ -26,6 +27,14 @@ publishing {
 	}
 	repositories {
 		mavenLocal()
+		maven {
+			name = "GitHubPackages"
+			url = "https://maven.pkg.github.com/xiv-gear-planner/xivapi-java"
+			credentials {
+				username = System.getenv("GITHUB_ACTOR")
+				password = System.getenv("GITHUB_TOKEN")
+			}
+		}
 	}
 }
 
@@ -87,3 +96,67 @@ def mainPkg = 'gg.xp.xivapi'
 ////		}
 ////	}
 //}
+
+
+// Task to remove the -SNAPSHOT suffix
+tasks.register('removeSnapshotSuffix') {
+	doLast {
+		def pattern = Pattern.compile('(\\d+\\.\\d+\\.\\d+)-SNAPSHOT')
+		def matcher = pattern.matcher(project.version.toString())
+		if (matcher.matches()) {
+			def newVersion = matcher.group(1)
+			project.version = newVersion
+
+			logger.lifecycle("New version: ${newVersion}")
+			def versionFile = file('gradle.properties')
+			logger.lifecycle("Version file: ${versionFile.absolutePath}")
+			versionFile.text = versionFile.text.replaceAll('version=.*', "version=${newVersion}")
+		}
+		else {
+			throw new GradleException("Bad version: ${project.version}")
+		}
+	}
+}
+
+// Task to bump the version to the next patch and add -SNAPSHOT suffix
+tasks.register('bumpVersion') {
+	doLast {
+		def pattern = Pattern.compile('(\\d+)\\.(\\d+)\\.(\\d+)')
+		def matcher = pattern.matcher(project.version.toString())
+		if (matcher.matches()) {
+			def major = matcher.group(1).toInteger()
+			def minor = matcher.group(2).toInteger()
+			def patch = matcher.group(3).toInteger() + 1
+			def newVersion = "${major}.${minor}.${patch}-SNAPSHOT"
+			project.version = newVersion
+
+			logger.lifecycle("New version: ${newVersion}")
+			def versionFile = file('gradle.properties')
+			logger.lifecycle("Version file: ${versionFile.absolutePath}")
+			versionFile.text = versionFile.text.replaceAll('version=.*', "version=${newVersion}")
+		}
+		else {
+			throw new GradleException("Bad version: ${project.version}")
+		}
+	}
+}
+
+// Ensure the tasks run in sequence
+bumpVersion.mustRunAfter removeSnapshotSuffix
+
+
+tasks.register('printVersion') {
+	doLast {
+		println project.version
+	}
+}
+
+tasks.register('verifySnapshotSuffix') {
+	doLast {
+		def pattern = Pattern.compile('(\\d+\\.\\d+\\.\\d+)-SNAPSHOT')
+		def matcher = pattern.matcher(project.version.toString())
+		if (!matcher.matches()) {
+			throw new GradleException("Version '${project.version}' does not have the '-SNAPSHOT' suffix.")
+		}
+	}
+}
