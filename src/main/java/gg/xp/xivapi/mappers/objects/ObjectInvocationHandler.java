@@ -12,11 +12,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class ObjectInvocationHandler implements InvocationHandler, Serializable {
 
@@ -28,6 +25,7 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 	private static final Method equalsMethod;
 	private static final Method hashCodeMethod;
 	private static final Method mapMethod;
+
 	static {
 		try {
 			equalsMethod = Object.class.getMethod("equals", Object.class);

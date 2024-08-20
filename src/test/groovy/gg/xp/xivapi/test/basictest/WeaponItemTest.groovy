@@ -121,4 +121,15 @@ class WeaponItemTest {
 		Assertions.assertTrue(baseParams.every {it.rowId != 0})
 	}
 
+	@Test
+	void testClassJobCategory() {
+		Assertions.assertTrue(item.classJobCategory.jobs["SGE"])
+		Assertions.assertFalse(item.classJobCategory.jobs["WHM"])
+		Assertions.assertNull(item.classJobCategory.jobs["Name"])
+
+		Assertions.assertEquals(true, item.classJobCategory.jobsFull["SGE"])
+		Assertions.assertEquals(false, item.classJobCategory.jobsFull["WHM"])
+		Assertions.assertEquals("SGE", item.classJobCategory.jobsFull["Name"])
+	}
+
 }

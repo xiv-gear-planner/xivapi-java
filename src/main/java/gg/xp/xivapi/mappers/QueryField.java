@@ -14,4 +14,10 @@ public record QueryField(QueryFieldType type, String name) {
 		return new QueryField(type, "%s.%s".formatted(prefix, this.name));
 	}
 
+	public static String ALL = "*";
+
+	public boolean isAll() {
+		return ALL.equals(name());
+	}
+
 }

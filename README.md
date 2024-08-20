@@ -90,13 +90,13 @@ Item item = client.getById(Item.class, 44096);
 - List and array types
 - Schema versions
 - Cache mappings so they don't have to be recomputed
+- Iteration prefetch
+- Other forms of iterator (streams, lists, etc)
 
 ### Not Complete
 
 - Multiple languages
 - Querying based on method references (e.g. something like  `equals(Item::getName, "My Item")`)
 - Multi-sheet searching
-- Iteration prefetch
-- Other forms of iterator (streams, lists, etc)
 - Groovy DSLs
 - Publish package

@@ -53,6 +53,7 @@ public class XivApiClient implements AutoCloseable {
 	private final XivApiSettings settings;
 	private final HttpClient client;
 	private final @Nullable Semaphore limiter;
+	private ListOptions<XivApiObject> defaultListOpts = ListOptions.<XivApiObject>newBuilder().build();
 
 	/**
 	 * Constructor with a settings object.
@@ -216,11 +217,15 @@ public class XivApiClient implements AutoCloseable {
 
 		List<QueryField> fields = mapping.getQueryFields();
 
-		URI uri = buildUri(builder -> builder.appendPath("sheet").appendPath(sheetName).appendPath(String.valueOf(id)).addParameters(MappingUtils.formatQueryFields(fields)));
+		URI uri = buildUri(builder -> builder
+				.appendPath("sheet")
+				.appendPath(sheetName)
+				.appendPath(String.valueOf(id))
+				.addParameters(MappingUtils.formatQueryFields(fields)));
 
 		JsonNode root = sendGET(uri);
 
-		XivApiSchemaVersion sv  = MappingUtils.makeSchemaVersion(root.get("schema").textValue());
+		XivApiSchemaVersion sv = MappingUtils.makeSchemaVersion(root.get("schema").textValue());
 
 		XivApiContext context = new XivApiContext(root, settings, sv);
 
@@ -228,11 +233,14 @@ public class XivApiClient implements AutoCloseable {
 	}
 
 	/**
-	 * @param <X> The element type of the list
 	 * @return Return the default {@link ListOptions}.
 	 */
-	private <X> ListOptions<X> defaultListOptions() {
-		return ListOptions.<X>newBuilder().build();
+	private ListOptions<XivApiObject> defaultListOptions() {
+		return defaultListOpts;
+	}
+
+	public void setDefaultListOpts(ListOptions<XivApiObject> defaultListOpts) {
+		this.defaultListOpts = defaultListOpts;
 	}
 
 	/**
@@ -265,7 +273,11 @@ public class XivApiClient implements AutoCloseable {
 
 		int perPage = options.getPerPage();
 
-		URI firstPageUri = buildUri(builder -> builder.appendPath("sheet").appendPath(sheetName).addParameters(MappingUtils.formatQueryFields(fields)).setParameter("limit", String.valueOf(perPage)));
+		URI firstPageUri = buildUri(builder -> builder
+				.appendPath("sheet")
+				.appendPath(sheetName)
+				.addParameters(MappingUtils.formatQueryFields(fields))
+				.setParameter("limit", String.valueOf(perPage)));
 
 		JsonNode firstPage = sendGET(firstPageUri);
 
@@ -300,7 +312,10 @@ public class XivApiClient implements AutoCloseable {
 
 		URI firstPageUri = buildUri(builder -> builder.appendPath("search")
 				// TODO: doesn't support multi-sheet searching yet
-				.setParameter("sheets", sheetName).setParameter("query", filter.toFilterString()).setParameter("limit", String.valueOf(perPage)).addParameters(MappingUtils.formatQueryFields(fields)));
+				.setParameter("sheets", sheetName)
+				.setParameter("query", filter.toFilterString())
+				.setParameter("limit", String.valueOf(perPage))
+				.addParameters(MappingUtils.formatQueryFields(fields)));
 
 		JsonNode firstPage = sendGET(firstPageUri);
 

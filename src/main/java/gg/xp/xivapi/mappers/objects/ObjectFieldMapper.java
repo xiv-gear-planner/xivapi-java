@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.annotations.NullIfZero;
 import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiRaw;
+import gg.xp.xivapi.annotations.XivApiThis;
 import gg.xp.xivapi.annotations.XivApiTransientField;
 import gg.xp.xivapi.clienttypes.XivApiBase;
 import gg.xp.xivapi.clienttypes.XivApiObject;
@@ -17,12 +18,12 @@ import gg.xp.xivapi.mappers.getters.MetaFieldMapper;
 import gg.xp.xivapi.mappers.getters.NormalFieldMapper;
 import gg.xp.xivapi.mappers.getters.RawFieldMapper;
 import gg.xp.xivapi.mappers.getters.RawTransientFieldMapper;
+import gg.xp.xivapi.mappers.getters.ThisFieldMapper;
 import gg.xp.xivapi.mappers.getters.TransientFieldMapper;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.LinkedHashMap;
@@ -77,13 +78,17 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			Class<?> returnType = method.getReturnType();
 
 			// By default, we want to use NormalFieldMapper, unless there is an annotation to specify otherwise.
+			XivApiThis thisAnn = method.getAnnotation(XivApiThis.class);
 			XivApiMetaField metaFieldAnn = method.getAnnotation(XivApiMetaField.class);
 			XivApiTransientField transientFieldAnn = method.getAnnotation(XivApiTransientField.class);
 			String fieldName = MappingUtils.getFieldName(method);
 
 			FieldMapper<?> fieldMapper;
 
-			if (metaFieldAnn != null) {
+			if (thisAnn != null) {
+				fieldMapper = new ThisFieldMapper<>(transientFieldAnn != null, returnType, method, mapper);
+			}
+			else if (metaFieldAnn != null) {
 				// If it is a meta field (value, row_id, score, etc), use MetaFieldMapper
 				fieldMapper = new MetaFieldMapper<>(fieldName, returnType, method, mapper);
 			}
@@ -169,6 +174,10 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 	@Override
 	public List<QueryField> getQueryFields() {
+		// If any sub-fields requires all fields, then just return an empty list
+		if (methodFieldMap.values().stream().flatMap(it -> it.getQueryFields().stream()).anyMatch(QueryField::isAll)) {
+			return List.of();
+		}
 		return methodFieldMap.values()
 				.stream()
 				.flatMap(fm -> fm.getQueryFields().stream())

@@ -77,31 +77,31 @@ public final class MappingUtils {
 
 		XivApiSheet sheetAnn = cls.getAnnotation(XivApiSheet.class);
 
-		if (sheetAnn == null) {
-			throw new IllegalArgumentException("Class %s does not have a @XivApiSheet sheetAnn".formatted(cls));
-		}
-
-		String value = sheetAnn.value();
-
-		if (value.isEmpty()) {
+		if (sheetAnn == null || sheetAnn.value().isEmpty()) {
 			return cls.getSimpleName();
 		}
-
-		return value;
+		else {
+			return sheetAnn.value();
+		}
 	}
 
 	public static List<NameValuePair> formatQueryFields(Collection<QueryField> fields) {
+		// TODO: test what happens if you have a sub-object with no fields
 		Map<QueryFieldType, List<QueryField>> grouped = fields.stream().collect(Collectors.groupingBy(QueryField::type));
 		return List.of(
-				new BasicNameValuePair("fields", grouped.getOrDefault(QueryFieldType.Field, List.of())
-						.stream()
-						.map(QueryField::name)
-						.collect(Collectors.joining(","))),
-				new BasicNameValuePair("transient", grouped.getOrDefault(QueryFieldType.TransientField, List.of())
-						.stream()
-						.map(QueryField::name)
-						.collect(Collectors.joining(",")))
+				new BasicNameValuePair("fields", formatQueryFieldsSub(grouped.getOrDefault(QueryFieldType.Field, List.of()))),
+				new BasicNameValuePair("transient", formatQueryFieldsSub(grouped.getOrDefault(QueryFieldType.TransientField, List.of())))
 		);
+	}
+
+	private static String formatQueryFieldsSub(Collection<QueryField> fields) {
+		if (fields.isEmpty()) {
+			return "*";
+		}
+		return fields
+				.stream()
+				.map(QueryField::name)
+				.collect(Collectors.joining(","));
 	}
 
 	public static Class<?> parameterizedTypeToRawClass(Type typeOriginal) {

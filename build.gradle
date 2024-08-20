@@ -4,6 +4,7 @@ plugins {
 	id 'java-library'
 	// TODO try to get this working
 //	id 'org.moditect.gradleplugin' version '1.0.0-rc3'
+	id 'maven-publish'
 }
 
 group = 'gg.xp'
@@ -13,11 +14,26 @@ repositories {
 	mavenCentral()
 }
 
+java {
+	withSourcesJar()
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+		}
+	}
+	repositories {
+		mavenLocal()
+	}
+}
+
 dependencies {
 	testImplementation 'org.apache.groovy:groovy:4.0.22'
 	implementation 'org.slf4j:slf4j-api:2.0.12'
 	// https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5
-	implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.3.1'
+	api group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.3.1'
 	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
 	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.2'
 	// https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
