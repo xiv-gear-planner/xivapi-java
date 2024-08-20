@@ -23,7 +23,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Ensure this is a snapshot
-        run: ./gradlew ensureSnapshotSuffix
+        run: ./gradlew verifySnapshotSuffix
 
       - name: Test and publish package
         run: ./gradlew test publish
