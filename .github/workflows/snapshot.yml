@@ -10,6 +10,20 @@ jobs:
       contents: read
       packages: write
     steps:
+      # TODO: move this back down later
+      - name: Import GPG key
+        run: |
+          mkdir -p ~/.gnupg
+          # export GPG_TTY=$(tty)
+          echo "$GPG_PRIVATE_KEY" > private.key
+          gpg --import private.key
+          rm private.key
+          echo "default-cache-ttl 600" >> ~/.gnupg/gpg-agent.conf
+          echo "max-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
+          gpgconf --reload gpg-agent
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.OSS_GPG_KEY }}
+
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
@@ -27,17 +41,6 @@ jobs:
 
       - name: Ensure this is a snapshot
         run: ./gradlew verifySnapshotSuffix
-
-      - name: Import GPG key
-        run: |
-          mkdir -p ~/.gnupg
-          export GPG_TTY=$(tty)
-          echo "$GPG_PRIVATE_KEY" | gpg --import
-          echo "default-cache-ttl 600" >> ~/.gnupg/gpg-agent.conf
-          echo "max-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
-          gpgconf --reload gpg-agent
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.OSS_GPG_KEY }}
 
       - name: Configure Gradle
         run: |
