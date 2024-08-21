@@ -7,6 +7,7 @@ plugins {
 	// TODO try to get this working
 //	id 'org.moditect.gradleplugin' version '1.0.0-rc3'
 	id 'maven-publish'
+	id 'signing'
 }
 
 group = 'gg.xp'
@@ -23,16 +24,59 @@ publishing {
 	publications {
 		mavenJava(MavenPublication) {
 			from components.java
+			versionMapping {
+				usage('java-api') {
+					fromResolutionOf('runtimeClasspath')
+				}
+				usage('java-runtime') {
+					fromResolutionResult()
+				}
+			}
+			pom {
+				name = 'XivAPI Java Client'
+				description = 'A XivAPI client library for Java'
+				url = 'https://github.com/xiv-gear-planner/xivapi-java/'
+				licenses {
+					license {
+						name = 'GPLv3'
+						url = 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+					}
+				}
+				developers {
+					developer {
+						id = 'xp'
+						name = 'xp'
+						email = 'wdxiv@icloud.com'
+					}
+				}
+				scm {
+					connection = 'scm:git:git://github.com/xiv-gear-planner/xivapi-java.git'
+					developerConnection = 'scm:git:git://github.com/xiv-gear-planner/xivapi-java.git'
+					url = 'https://github.com/xiv-gear-planner/xivapi-java/'
+				}
+			}
 		}
 	}
 	repositories {
 		mavenLocal()
-		maven {
-			name = "GitHubPackages"
-			url = "https://maven.pkg.github.com/xiv-gear-planner/xivapi-java"
-			credentials {
-				username = System.getenv("GITHUB_ACTOR")
-				password = System.getenv("GITHUB_TOKEN")
+		if (project.properties["publishGH"]) {
+			maven {
+				name = "GitHubPackages"
+				url = "https://maven.pkg.github.com/xiv-gear-planner/xivapi-java"
+				credentials {
+					username = System.getenv("GITHUB_ACTOR")
+					password = System.getenv("GITHUB_TOKEN")
+				}
+			}
+		}
+		if (project.properties["publishOSS"]) {
+			maven {
+				name = "SonatypeOSS"
+				url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+				credentials {
+					username = project.findProperty("ossrhUsername") ?: System.getenv("OSS_USER")
+					password = project.findProperty("ossrhPassword") ?: System.getenv("OSS_PASS")
+				}
 			}
 		}
 	}
@@ -47,7 +91,6 @@ dependencies {
 	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.2'
 	// https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
 	implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
-//	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.16.0'
 	compileOnly 'org.jetbrains:annotations:24.1.0'
 
 	testImplementation platform('org.junit:junit-bom:5.11.0')
@@ -78,7 +121,7 @@ test {
 
 }
 
-def mainPkg = 'gg.xp.xivapi'
+//def mainPkg = 'gg.xp.xivapi'
 
 //moditect {
 //	moduleName = mainPkg
@@ -159,4 +202,18 @@ tasks.register('verifySnapshotSuffix') {
 			throw new GradleException("Version '${project.version}' does not have the '-SNAPSHOT' suffix.")
 		}
 	}
+}
+
+tasks.register('javadocJar')
+
+signing {
+	useGpgCmd()
+	sign publishing.publications.mavenJava
+}
+
+if (project.findProperty("enableSigning")) {
+	tasks.withType(Sign)*.enabled = true
+}
+else {
+	tasks.withType(Sign)*.enabled = false
 }

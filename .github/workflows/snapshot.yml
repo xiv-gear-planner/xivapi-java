@@ -25,7 +25,26 @@ jobs:
       - name: Ensure this is a snapshot
         run: ./gradlew verifySnapshotSuffix
 
+      - name: Import GPG key
+        run: |
+          mkdir -p ~/.gnupg
+          echo "$GPG_PRIVATE_KEY" | gpg --import
+          echo "default-cache-ttl 600" >> ~/.gnupg/gpg-agent.conf
+          echo "max-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
+          gpgconf --reload gpg-agent
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.OSS_GPG_KEY }}
+
+      - name: Configure Gradle
+        run: |
+          mkdir -p ~/.gradle
+          echo "signing.gnupg.keyName=${{ secrets.GPG_KEY_NAME }}" >> ~/.gradle/gradle.properties
+          echo "signing.gnupg.passphrase=${{ secrets.GPG_PASSPHRASE }}" >> ~/.gradle/gradle.properties
+        env:
+          GPG_KEY_NAME: ${{ secrets.OSS_GPG_KEY_NAME }}
+          GPG_PASSPHRASE: ${{ secrets.OSS_GPG_KEY_PASS }}
+
       - name: Test and publish package
-        run: ./gradlew test publish
+        run: ./gradlew -PenableSigning=true -PpublishGH=true -PpublishOSS=true test publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
