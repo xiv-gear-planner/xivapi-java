@@ -1,5 +1,6 @@
 package gg.xp.xivapi;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.clienttypes.XivApiObject;
@@ -320,6 +321,13 @@ public class XivApiClient implements AutoCloseable {
 		JsonNode firstPage = sendGET(firstPageUri);
 
 		return new XivApiSearchPaginator<>(this, firstPage, firstPageUri, options::shouldStop, mapping, 100);
+	}
+
+	public List<String> getGameVersions() {
+		URI uri = buildUri(builder -> builder.appendPath("version"));
+		JsonNode result = sendGET(uri);
+		return mapper.convertValue(result, new TypeReference<List<String>>() {
+		});
 	}
 
 	/**
