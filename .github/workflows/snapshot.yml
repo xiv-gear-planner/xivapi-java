@@ -10,37 +10,12 @@ jobs:
       contents: read
       packages: write
     steps:
-      # TODO: move this back down later
-#      - name: Import GPG key
-#        run: |
-#          mkdir -p ~/.gnupg
-#          # export GPG_TTY=$(tty)
-#          echo "$GPG_PRIVATE_KEY" > private.key
-#          gpg --import private.key
-#          rm private.key
-#          echo "default-cache-ttl 600" >> ~/.gnupg/gpg-agent.conf
-#          echo "max-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
-#          gpgconf --reload gpg-agent
-#        env:
-#          GPG_PRIVATE_KEY: ${{ secrets.OSS_GPG_KEY }}
-
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.OSS_GPG_KEY }}
-          passphrase: ${{ secrets.OSS_GPG_KEY_PASS }}
 
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'oracle'
-#          gpg-private-key: ${{ secrets.OSS_GPG_KEY }}
-#        env:
-#          GPG_PASSPHRASE: ${{ secrets.OSS_GPG_KEY_PASS }}
-
-#      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
       - name: Chmod
         run: chmod +x gradlew
@@ -48,17 +23,22 @@ jobs:
       - name: Ensure this is a snapshot
         run: ./gradlew verifySnapshotSuffix
 
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.OSS_GPG_KEY }}
+          passphrase: ${{ secrets.OSS_GPG_KEY_PASS }}
+
+
       - name: Configure Gradle
         run: |
           mkdir -p ~/.gradle
           echo "signing.gnupg.keyName=${{ secrets.OSS_GPG_KEY_NAME }}" >> ~/.gradle/gradle.properties
           echo "signing.gnupg.passphrase=${{ env.OSS_GPG_KEY_PASS }}" >> ~/.gradle/gradle.properties
-#        env:
-#          GPG_KEY_NAME: ${{ secrets.OSS_GPG_KEY_NAME }}
-#          GPG_PASSPHRASE: ${{ secrets.OSS_GPG_KEY_PASS }}
 
       - name: Test and publish package
-        run: ./gradlew -PenableSigning=true -PpublishGH=true -PpublishOSS=true test publish
+        # Sonatype central does not support snapshots
+        run: ./gradlew -PenableSigning=true -PpublishGH=true -PpublishOSS=false test publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OSS_USER: ${{ secrets.OSS_USER }}

@@ -8,9 +8,10 @@ plugins {
 //	id 'org.moditect.gradleplugin' version '1.0.0-rc3'
 	id 'maven-publish'
 	id 'signing'
+	id 'com.gradleup.nmcp' version '0.0.8'
 }
 
-group = 'gg.xp'
+group = 'app.xivgear'
 
 repositories {
 	mavenCentral()
@@ -69,16 +70,17 @@ publishing {
 				}
 			}
 		}
-		if (project.properties["publishOSS"]) {
-			maven {
-				name = "SonatypeOSS"
-				url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-				credentials {
-					username = project.findProperty("ossrhUsername") ?: System.getenv("OSS_USER")
-					password = project.findProperty("ossrhPassword") ?: System.getenv("OSS_PASS")
-				}
-			}
-		}
+//		if (project.properties["publishOSS"]) {
+//			maven {
+//				name = "SonatypeOSS"
+////				url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+//				url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+//				credentials {
+//					username = project.findProperty("ossrhUsername") ?: System.getenv("OSS_USER")
+//					password = project.findProperty("ossrhPassword") ?: System.getenv("OSS_PASS")
+//				}
+//			}
+//		}
 	}
 }
 
@@ -216,4 +218,18 @@ if (project.findProperty("enableSigning")) {
 }
 else {
 	tasks.withType(Sign)*.enabled = false
+}
+
+
+if (project.properties["publishOSS"]) {
+	nmcp {
+		publish("mavenJava") {
+			username = project.findProperty("ossrhUsername") ?: System.getenv("OSS_USER")
+			password = project.findProperty("ossrhPassword") ?: System.getenv("OSS_PASS")
+			publicationType = "AUTOMATIC"
+		}
+	}
+	tasks.named('publish') {
+		dependsOn tasks.named('publishAllPublicationsToCentralPortal')
+	}
 }
