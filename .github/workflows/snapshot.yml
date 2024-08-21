@@ -61,3 +61,5 @@ jobs:
         run: ./gradlew -PenableSigning=true -PpublishGH=true -PpublishOSS=true test publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OSS_USER: ${{ secrets.OSS_USER }}
+          OSS_PASS: ${{ secrets.OSS_PASS }}
