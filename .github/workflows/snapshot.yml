@@ -15,9 +15,9 @@ jobs:
         with:
           java-version: '21'
           distribution: 'oracle'
-          gpg-private-key: ${{ secrets.OSS_GPG_KEY }}
-        env:
-          GPG_PASSPHRASE: ${{ secrets.OSS_GPG_KEY_PASS }}
+#          gpg-private-key: ${{ secrets.OSS_GPG_KEY }}
+#        env:
+#          GPG_PASSPHRASE: ${{ secrets.OSS_GPG_KEY_PASS }}
 
 #      - name: Setup Gradle
 #        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
@@ -28,15 +28,16 @@ jobs:
       - name: Ensure this is a snapshot
         run: ./gradlew verifySnapshotSuffix
 
-#      - name: Import GPG key
-#        run: |
-#          mkdir -p ~/.gnupg
-#          echo "$GPG_PRIVATE_KEY" | gpg --import
-#          echo "default-cache-ttl 600" >> ~/.gnupg/gpg-agent.conf
-#          echo "max-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
-#          gpgconf --reload gpg-agent
-#        env:
-#          GPG_PRIVATE_KEY: ${{ secrets.OSS_GPG_KEY }}
+      - name: Import GPG key
+        run: |
+          mkdir -p ~/.gnupg
+          export GPG_TTY=$(tty)
+          echo "$GPG_PRIVATE_KEY" | gpg --import
+          echo "default-cache-ttl 600" >> ~/.gnupg/gpg-agent.conf
+          echo "max-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
+          gpgconf --reload gpg-agent
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.OSS_GPG_KEY }}
 
       - name: Configure Gradle
         run: |
