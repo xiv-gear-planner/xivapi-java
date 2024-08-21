@@ -11,6 +11,17 @@ This client works by having the end user supply an `interface` with the fields t
 annotations dictating the behavior. The API client then queries the API, and uses a Java Proxy to
 create an implementation of the interface, with response fields mapped to the interface methods.
 
+## Dependency Info
+
+See [Maven Central](https://central.sonatype.com/artifact/app.xivgear/xivapi-java)
+
+```groovy
+dependencies {
+	// Be sure to check what the latest version is
+	implementation group: 'app.xivgear', name: 'xivapi-java', version: '0.1.0'
+}
+```
+
 ## Example
 
 This example is used in the test suite.
@@ -92,11 +103,11 @@ Item item = client.getById(Item.class, 44096);
 - Cache mappings so they don't have to be recomputed
 - Iteration prefetch
 - Other forms of iterator (streams, lists, etc)
+- Publish package
 
 ### Not Complete
 
-- Multiple languages
-- Querying based on method references (e.g. something like  `equals(Item::getName, "My Item")`)
+- Multiple languages (EN currently supported)
+- Querying based on method references (e.g. something like `equals(Item::getName, "My Item")`)
 - Multi-sheet searching
 - Groovy DSLs
-- Publish package
