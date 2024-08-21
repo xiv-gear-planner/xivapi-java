@@ -124,7 +124,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 		try {
 			// If this is nested (i.e. it is not the root node), and it has a value of 0 but lacks row_id and/or fields,
 			// then it is actually a null.
-			boolean isNested = current != context.getRootNode();
+			boolean isNested = current != context.rootNode();
 			if (isNested) {
 				boolean zeroValue = current.get("value").asInt() == 0;
 				// TODO: double check this logic
@@ -152,7 +152,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 			methodValueMap.put(pkMethod, primaryKey);
 			methodValueMap.put(ridMethod, rowId);
-			methodValueMap.put(svMethod, context.getSchemaVersion());
+			methodValueMap.put(svMethod, context.schemaVersion());
 			methodValueMap.put(tsMethod, "%s(%s)".formatted(objectType.getSimpleName(), rowId));
 			// Go through the method -> field map, deserialize each field into its respective type, and then
 			// assemble a method -> value map.
@@ -165,7 +165,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			throw new XivApiDeserializationException("Error deserializing %s from '%s'".formatted(objectType, current), t);
 		}
 
-		boolean strict = context.getSettings().isStrict();
+		boolean strict = context.settings().isStrict();
 
 		//noinspection unchecked
 		return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, new ObjectInvocationHandler(methodValueMap, strict));

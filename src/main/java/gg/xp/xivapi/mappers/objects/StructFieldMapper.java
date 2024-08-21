@@ -2,7 +2,6 @@ package gg.xp.xivapi.mappers.objects;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gg.xp.xivapi.annotations.XivApiField;
 import gg.xp.xivapi.clienttypes.XivApiBase;
 import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.clienttypes.XivApiStruct;
@@ -14,7 +13,6 @@ import gg.xp.xivapi.mappers.util.MappingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.LinkedHashMap;
@@ -63,7 +61,7 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 	public X getValue(JsonNode current, XivApiContext context) {
 
 		final Map<Method, Object> methodValueMap = new LinkedHashMap<>();
-		methodValueMap.put(svMethod, context.getSchemaVersion());
+		methodValueMap.put(svMethod, context.schemaVersion());
 		methodValueMap.put(tsMethod, "%s(StructProxy)".formatted(objectType.getSimpleName()));
 		methodFieldMap.forEach((method, fieldMapper) -> {
 			Object value = fieldMapper.getValue(current, context);
@@ -71,7 +69,7 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 		});
 
 		//noinspection unchecked
-		return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, new StructInvocationHandler(methodValueMap, context.getSettings().isStrict()));
+		return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, new StructInvocationHandler(methodValueMap, context.settings().isStrict()));
 	}
 
 	@Override
