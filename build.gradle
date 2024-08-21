@@ -19,6 +19,11 @@ repositories {
 
 java {
 	withSourcesJar()
+	withJavadocJar()
+}
+
+javadoc {
+	options.addBooleanOption('html5', true)
 }
 
 publishing {
@@ -205,8 +210,6 @@ tasks.register('verifySnapshotSuffix') {
 		}
 	}
 }
-
-tasks.register('javadocJar')
 
 signing {
 	useGpgCmd()
