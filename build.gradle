@@ -65,7 +65,7 @@ publishing {
 	}
 	repositories {
 		mavenLocal()
-		if (project.properties["publishGH"]) {
+		if (project.properties["publishGH"] == 'true') {
 			maven {
 				name = "GitHubPackages"
 				url = "https://maven.pkg.github.com/xiv-gear-planner/xivapi-java"
@@ -224,7 +224,7 @@ else {
 }
 
 
-if (project.properties["publishOSS"]) {
+if (project.properties["publishOSS"] == 'true') {
 	nmcp {
 		publish("mavenJava") {
 			username = project.findProperty("ossrhUsername") ?: System.getenv("OSS_USER")
