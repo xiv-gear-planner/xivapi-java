@@ -51,11 +51,11 @@ jobs:
       - name: Configure Gradle
         run: |
           mkdir -p ~/.gradle
-          echo "signing.gnupg.keyName=${{ secrets.GPG_KEY_NAME }}" >> ~/.gradle/gradle.properties
-          echo "signing.gnupg.passphrase=${{ secrets.GPG_PASSPHRASE }}" >> ~/.gradle/gradle.properties
-        env:
-          GPG_KEY_NAME: ${{ secrets.OSS_GPG_KEY_NAME }}
-          GPG_PASSPHRASE: ${{ secrets.OSS_GPG_KEY_PASS }}
+          echo "signing.gnupg.keyName=${{ secrets.OSS_GPG_KEY_NAME }}" >> ~/.gradle/gradle.properties
+          echo "signing.gnupg.passphrase=${{ env.OSS_GPG_KEY_PASS }}" >> ~/.gradle/gradle.properties
+#        env:
+#          GPG_KEY_NAME: ${{ secrets.OSS_GPG_KEY_NAME }}
+#          GPG_PASSPHRASE: ${{ secrets.OSS_GPG_KEY_PASS }}
 
       - name: Test and publish package
         run: ./gradlew -PenableSigning=true -PpublishGH=true -PpublishOSS=true test publish
