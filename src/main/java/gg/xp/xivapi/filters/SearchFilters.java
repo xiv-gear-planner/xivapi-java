@@ -121,23 +121,23 @@ public final class SearchFilters {
 		return binary(field, "=", false);
 	}
 
-	public static SearchFilter gte(String field, Object value) {
+	public static SearchFilter gte(String field, Number value) {
 		return binary(field, ">=", value);
 	}
 
-	public static SearchFilter lte(String field, Object value) {
+	public static SearchFilter lte(String field, Number value) {
 		return binary(field, "<=", value);
 	}
 
-	public static SearchFilter gt(String field, Object value) {
+	public static SearchFilter gt(String field, Number value) {
 		return binary(field, ">", value);
 	}
 
-	public static SearchFilter lt(String field, Object value) {
+	public static SearchFilter lt(String field, Number value) {
 		return binary(field, "<", value);
 	}
 
-	public static SearchFilter strPart(String field, Object value) {
+	public static SearchFilter strPart(String field, String value) {
 		return binary(field, "~", value);
 	}
 

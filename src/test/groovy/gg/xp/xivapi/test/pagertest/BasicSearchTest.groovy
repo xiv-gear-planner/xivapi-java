@@ -2,7 +2,6 @@ package gg.xp.xivapi.test.pagertest
 
 import gg.xp.xivapi.XivApiClient
 import gg.xp.xivapi.clienttypes.XivApiSettings
-import gg.xp.xivapi.filters.SearchFilters
 import gg.xp.xivapi.pagination.ListOptions
 import gg.xp.xivapi.test.basictest.Item
 import groovy.transform.CompileStatic
@@ -10,10 +9,13 @@ import org.apache.commons.collections4.IteratorUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
+import static gg.xp.xivapi.filters.SearchFilters.*
+
 @CompileStatic
 class BasicSearchTest {
 
 	private static final String schemaVersion = "exdschema@5f292f39f3deab2c43bee62b202b54ebf51e15b7-2024.08.02.0000.0000"
+
 	@Test
 	void testSearch() {
 		// Not going to inspect much in this list, because there's no guarantee of order
@@ -22,7 +24,7 @@ class BasicSearchTest {
 			it.gameVersion = "7.05"
 		})
 		Iterator<Item> itemsIter = client.getSearchIterator(Item,
-				SearchFilters.and("LevelItem>=700", "LevelItem<=710", "ClassJobCategory.WHM=1"),
+				and(gte("LevelItem", 700), lte("LevelItem", 710), eq("ClassJobCategory.WHM", 1)),
 				ListOptions.newBuilder().with {
 					perPage 10
 					build()
@@ -53,7 +55,7 @@ class BasicSearchTest {
 		// Not going to inspect much in this list, because there's no guarantee of order
 		var client = new XivApiClient()
 		Iterator<Item> itemsIterNoStop = client.getSearchIterator(Item,
-				SearchFilters.and("LevelItem>=700", "LevelItem<=710", "ClassJobCategory.WHM=1"),
+				and(gte("LevelItem", 700), lte("LevelItem", 710), eq("ClassJobCategory.WHM", 1)),
 				ListOptions.newBuilder().with {
 					perPage 10
 					build()
@@ -62,8 +64,8 @@ class BasicSearchTest {
 		List<Item> dumpedNoStop = IteratorUtils.toList(itemsIterNoStop)
 
 		Iterator<Item> itemsIter = client.getSearchIterator(Item,
-				SearchFilters.and("LevelItem>=700", "LevelItem<=710", "ClassJobCategory.WHM=1"),
-				ListOptions.<Item>newBuilder().with {
+				and(gte("LevelItem", 700), lte("LevelItem", 710), eq("ClassJobCategory.WHM", 1)),
+				ListOptions.<Item> newBuilder().with {
 					perPage 10
 					stopCondition { index, value ->
 						value.rowId == 42842
