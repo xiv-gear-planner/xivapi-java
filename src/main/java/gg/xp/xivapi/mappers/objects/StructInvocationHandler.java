@@ -9,12 +9,14 @@ import gg.xp.xivapi.mappers.util.MappingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ObjectStreamException;
 import java.io.Serial;
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -115,4 +117,84 @@ public class StructInvocationHandler implements InvocationHandler, Serializable 
 
 		return value;
 	}
+
+
+
+	@Serial
+	private Object writeReplace() throws ObjectStreamException {
+		Map<MethodMetadata, Object> metaMap = new HashMap<>(methodValueMap.size());
+		for (var entry : methodValueMap.entrySet()) {
+			metaMap.put(MethodMetadata.fromMethod(entry.getKey()), entry.getValue());
+		}
+		return new SerializableForm(metaMap, strict);
+	}
+
+	private record SerializableForm(Map<MethodMetadata, Object> methodMetaMap, boolean strict) implements Serializable {
+		private Object readResolve() {
+			Map<Method, Object> methodMap = new HashMap<>(methodMetaMap.size());
+			for (var entry : methodMetaMap.entrySet()) {
+				try {
+					methodMap.put(entry.getKey().toMethod(), entry.getValue());
+				}
+				catch (NoSuchMethodException | ClassNotFoundException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			return new StructInvocationHandler(methodMap, strict);
+		}
+	}
+
+	public static class MethodMetadata implements Serializable {
+		private static final long serialVersionUID = 1L;
+
+		private final String methodName;
+		private final String[] parameterTypeNames;
+		private final String interfaceClassName;
+
+		public MethodMetadata(String methodName, String[] parameterTypeNames, String interfaceClassName) {
+			this.methodName = methodName;
+			this.parameterTypeNames = parameterTypeNames;
+			this.interfaceClassName = interfaceClassName;
+		}
+
+		public static MethodMetadata fromMethod(Method method) {
+			return new MethodMetadata(
+					method.getName(),
+					Arrays.stream(method.getParameterTypes()).map(Class::getName).toArray(String[]::new),
+					method.getDeclaringClass().getName()
+			);
+		}
+
+		public Method toMethod() throws NoSuchMethodException, ClassNotFoundException {
+			Class<?> interfaceClass = Class.forName(interfaceClassName);
+			Class<?>[] parameterTypes = Arrays.stream(parameterTypeNames)
+					.map(name -> {
+						try {
+							return Class.forName(name);
+						}
+						catch (ClassNotFoundException e) {
+							throw new RuntimeException(e);
+						}
+					}).toArray(Class<?>[]::new);
+			return interfaceClass.getMethod(methodName, parameterTypes);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null || getClass() != obj.getClass()) return false;
+			MethodMetadata that = (MethodMetadata) obj;
+			return methodName.equals(that.methodName) &&
+			       Arrays.equals(parameterTypeNames, that.parameterTypeNames) &&
+			       interfaceClassName.equals(that.interfaceClassName);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = Objects.hash(methodName, interfaceClassName);
+			result = 31 * result + Arrays.hashCode(parameterTypeNames);
+			return result;
+		}
+	}
+
 }

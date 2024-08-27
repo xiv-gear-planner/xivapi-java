@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+// TODO: since these all resolve to strings anyway, they should be easy to unit test
 public final class SearchFilters {
 
 	private SearchFilters() {
