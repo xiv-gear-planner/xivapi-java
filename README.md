@@ -20,7 +20,7 @@ See [Maven Central](https://central.sonatype.com/artifact/app.xivgear/xivapi-jav
 ```groovy
 dependencies {
 	// Be sure to check what the latest version is
-	implementation group: 'app.xivgear', name: 'xivapi-java', version: '0.1.1'
+	implementation group: 'app.xivgear', name: 'xivapi-java', version: '0.1.2'
 }
 ```
 
@@ -31,7 +31,7 @@ dependencies {
     <groupId>app.xivgear</groupId>
     <artifactId>xivapi-java</artifactId>
     // Be sure to check what the latest version is
-    <version>0.1.1</version>
+    <version>0.1.2</version>
 </dependency>
 ```
 
@@ -145,7 +145,7 @@ SearchFilter filter = and(
         not(eq("Name", "Shadowbringer")),
         eq("Desynth", 0),
         // lt (less than), gt (greater than), lte (less than or equal), gte (greater than or equal)
-        lt("LevelItem<650")
+        lt("LevelItem", 650)
         // Other supported filter methods:
         // binary(field, operator, value) supports any other binary operations needed
         // isTrue(field) and isFalse(field) support booleans
@@ -203,3 +203,6 @@ is written in pure Java and does not have any Groovy dependencies.
 
 ## Debugging
 
+If you have a `XivApiObject` or `XivApiStruct` object, you can use the 
+`getMethodValueMap()` method to dump the raw mapping between methods and values which may
+help you determine if something has gone wrong.
