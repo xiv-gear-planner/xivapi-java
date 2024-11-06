@@ -8,6 +8,8 @@ import java.lang.annotation.RetentionPolicy;
  * <p>
  * That is, if I have a method called "getFoo()", by default, it will look at './fields/Foo'. If this annotation
  * is used, then it will instead deserialize '.'.
+ * <p>
+ * This annotation implies that all fields on this object should be retrieved, i.e. {@code fields=*} (or {@code transient=*}).
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface XivApiThis {

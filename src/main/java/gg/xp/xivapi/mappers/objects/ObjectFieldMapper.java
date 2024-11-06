@@ -3,6 +3,7 @@ package gg.xp.xivapi.mappers.objects;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.annotations.NullIfZero;
+import gg.xp.xivapi.annotations.XivApiLang;
 import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.annotations.XivApiThis;
@@ -14,18 +15,19 @@ import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.QueryField;
+import gg.xp.xivapi.mappers.QueryFieldType;
 import gg.xp.xivapi.mappers.getters.MetaFieldMapper;
 import gg.xp.xivapi.mappers.getters.NormalFieldMapper;
-import gg.xp.xivapi.mappers.getters.RawFieldMapper;
-import gg.xp.xivapi.mappers.getters.RawTransientFieldMapper;
 import gg.xp.xivapi.mappers.getters.ThisFieldMapper;
 import gg.xp.xivapi.mappers.getters.TransientFieldMapper;
 import gg.xp.xivapi.mappers.util.MappingUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,10 +83,13 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			XivApiThis thisAnn = method.getAnnotation(XivApiThis.class);
 			XivApiMetaField metaFieldAnn = method.getAnnotation(XivApiMetaField.class);
 			XivApiTransientField transientFieldAnn = method.getAnnotation(XivApiTransientField.class);
+
+			@SuppressWarnings("NonConstantStringShouldBeStringBuffer")
 			String fieldName = MappingUtils.getFieldName(method);
 
 			FieldMapper<?> fieldMapper;
 
+			// TODO: there is no transient equivalent of this
 			if (thisAnn != null) {
 				fieldMapper = new ThisFieldMapper<>(transientFieldAnn != null, returnType, method, mapper);
 			}
@@ -92,21 +97,20 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 				// If it is a meta field (value, row_id, score, etc), use MetaFieldMapper
 				fieldMapper = new MetaFieldMapper<>(fieldName, returnType, method, mapper);
 			}
-			else if (transientFieldAnn != null) {
-				// If transient, map accordingly
+			else {
+				XivApiLang langAnn = method.getAnnotation(XivApiLang.class);
 				if (method.isAnnotationPresent(XivApiRaw.class)) {
-					fieldMapper = new RawTransientFieldMapper<>(fieldName, returnType, method, mapper);
+					fieldName += "@as(raw)";
 				}
-				else {
+				else if (langAnn != null) {
+					fieldName += "@lang(%s)".formatted(langAnn.value());
+				}
+				if (transientFieldAnn != null) {
+					// If transient, map accordingly
 					fieldMapper = new TransientFieldMapper<>(fieldName, returnType, method, mapper);
 				}
-			}
-			else {
-				// Normal field
-				if (method.isAnnotationPresent(XivApiRaw.class)) {
-					fieldMapper = new RawFieldMapper<>(fieldName, returnType, method, mapper);
-				}
 				else {
+					// Normal field
 					fieldMapper = new NormalFieldMapper<>(fieldName, returnType, method, mapper);
 				}
 			}
@@ -174,14 +178,52 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 	@Override
 	public List<QueryField> getQueryFields() {
-		// If any sub-fields requires all fields, then just return an empty list
-		if (methodFieldMap.values().stream().flatMap(it -> it.getQueryFields().stream()).anyMatch(QueryField::isAll)) {
-			return List.of();
+		List<QueryField> normalFields = new ArrayList<>();
+		List<QueryField> transientFields = new ArrayList<>();
+		@Nullable QueryField wildcardNormal = null;
+		@Nullable QueryField wildcardTransient = null;
+		// Iterate through each sub-mapping
+		outer:
+		for (FieldMapper<?> mapper : methodFieldMap.values()) {
+			for (QueryField qf : mapper.getQueryFields()) {
+				boolean isWildcard = qf.isAll();
+				boolean isTrans = qf.type() == QueryFieldType.TransientField;
+				if (isTrans) {
+					if (isWildcard) {
+						wildcardTransient = qf;
+					}
+					else {
+						transientFields.add(qf);
+					}
+				}
+				else {
+					if (isWildcard) {
+						wildcardNormal = qf;
+					}
+					else {
+						normalFields.add(qf);
+					}
+				}
+				if (wildcardNormal != null && wildcardTransient != null) {
+					// No point in continuing if everything is a wildcard anyway
+					break outer;
+				}
+			}
 		}
-		return methodFieldMap.values()
-				.stream()
-				.flatMap(fm -> fm.getQueryFields().stream())
-				.toList();
+		List<QueryField> out = new ArrayList<>();
+		if (wildcardNormal != null) {
+			out.add(wildcardNormal);
+		}
+		else {
+			out.addAll(normalFields);
+		}
+		if (wildcardTransient != null) {
+			out.add(wildcardTransient);
+		}
+		else {
+			out.addAll(transientFields);
+		}
+		return out;
 	}
 
 }

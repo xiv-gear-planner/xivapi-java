@@ -95,9 +95,9 @@ public final class MappingUtils {
 	}
 
 	private static String formatQueryFieldsSub(Collection<QueryField> fields) {
-		if (fields.isEmpty()) {
-			return "*";
-		}
+//		if (fields.isEmpty()) {
+//			return "*";
+//		}
 		return fields
 				.stream()
 				.map(QueryField::name)
