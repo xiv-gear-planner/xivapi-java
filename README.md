@@ -20,7 +20,7 @@ See [Maven Central](https://central.sonatype.com/artifact/app.xivgear/xivapi-jav
 ```groovy
 dependencies {
 	// Be sure to check what the latest version is
-	implementation group: 'app.xivgear', name: 'xivapi-java', version: '0.1.2'
+	implementation group: 'app.xivgear', name: 'xivapi-java', version: '0.1.3'
 }
 ```
 
@@ -168,6 +168,28 @@ XivApiPaginator<Item> itemsIter2 = client.getSearchIterator(Item.class,
 		ListOptions.newBuilder().perPage(50).build());
 ```
 
+### Multilingual
+
+Xivapi supports multiple languages (en, de, fr, ja). There are two ways to query multiple languages:
+```java
+@XivApiSheet("Item")
+public interface Item extends XivApiObject {
+    // This will pull using the default language
+    String getName();
+
+    // Explicitly request DE
+    @XivApiField("Name")
+    @XivApiLang("de")
+    String getNameDe();
+
+    // Request all known languages
+    @XivApiField("Name")
+    XivApiLangString getNameStrings();
+    // You can then use getNameStrings().getEn(), .getDe(), etc, or .getAll() to return values as a map.
+}
+
+```
+
 ## Examples
 
 For more examples, you can consult the [tests](src/test/groovy/gg/xp/xivapi/test).
@@ -192,14 +214,14 @@ is written in pure Java and does not have any Groovy dependencies.
 - Iteration prefetch
 - Other forms of iterator (streams, lists, etc)
 - Publish package
+- Multilingual support
 
 ### Not Complete
 
-- Multiple languages
-  - Untested, but in the meantime, you should still be able to query different languages by overriding the field name, e.g. `@XivApiField("Name@lang(jp)")`.
 - Querying based on method references (e.g. something like `equals(Item::getName, "My Item")`)
 - Multi-sheet searching
 - Groovy DSLs
+- Set a default language
 
 ## Debugging
 

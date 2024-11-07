@@ -8,6 +8,7 @@ import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.annotations.XivApiThis;
 import gg.xp.xivapi.annotations.XivApiTransientField;
+import gg.xp.xivapi.clienttypes.XivApiLangString;
 import gg.xp.xivapi.clienttypes.XivApiBase;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.exceptions.XivApiDeserializationException;
@@ -96,6 +97,9 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			else if (metaFieldAnn != null) {
 				// If it is a meta field (value, row_id, score, etc), use MetaFieldMapper
 				fieldMapper = new MetaFieldMapper<>(fieldName, returnType, method, mapper);
+			}
+			else if (returnType.equals(XivApiLangString.class)) {
+				fieldMapper = new LangStringFieldMapper(fieldName, transientFieldAnn != null, method);
 			}
 			else {
 				XivApiLang langAnn = method.getAnnotation(XivApiLang.class);

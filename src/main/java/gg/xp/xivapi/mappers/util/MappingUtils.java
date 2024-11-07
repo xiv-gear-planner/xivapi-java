@@ -158,4 +158,6 @@ public final class MappingUtils {
 			return Objects.equals(left, right);
 		}
 	}
+
+	public static final List<String> ALL_LANGS = List.of("en", "de", "fr", "ja");
 }
