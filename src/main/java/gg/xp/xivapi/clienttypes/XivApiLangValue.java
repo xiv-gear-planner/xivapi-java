@@ -5,28 +5,28 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import java.util.Map;
 
-public interface XivApiLangString extends Serializable {
-
-	default String get(String lang) {
-		return getAll().get(lang);
-	};
+public interface XivApiLangValue<X> extends Serializable {
 
 	@JsonIgnore // ignore because the individual fields are already serialized
-	Map<String, String> getAll();
+	Map<String, X> getAll();
 
-	default String getEn() {
+	default X get(String lang) {
+		return getAll().get(lang);
+	}
+
+	default X getEn() {
 		return get("en");
 	}
 
-	default String getDe() {
+	default X getDe() {
 		return get("de");
 	}
 
-	default String getFr() {
+	default X getFr() {
 		return get("fr");
 	}
 
-	default String getJp() {
+	default X getJp() {
 		return get("jp");
 	}
 }

@@ -7,6 +7,8 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
+import static gg.xp.xivapi.test.testutils.TestUtils.serializeAndDeserialize
+
 @CompileStatic
 class LangTest {
 	@Test
@@ -24,7 +26,9 @@ class LangTest {
 		Assertions.assertEquals("Verschlungene Schatten 1", action.locationFull.nameDe)
 		// TODO: this one specifically doesn't work yet
 		// https://discord.com/channels/474518001173921794/474519195963490305/1303576638482681867
-//		Assertions.assertEquals("Verschlungene Schatten 1", action.locationDe.name)
+		Assertions.assertEquals("Verschlungene Schatten 1", action.locationDe.name)
+
+		Assertions.assertEquals("Verschlungene Schatten 1", action.locationsAll.de.name)
 
 		Assertions.assertEquals("the Binding Coil of Bahamut - Turn 1", action.locationFull.nameStrings['en'])
 		Assertions.assertEquals("Verschlungene Schatten 1", action.locationFull.nameStrings['de'])
@@ -35,6 +39,16 @@ class LangTest {
 		Assertions.assertEquals("the Binding Coil of Bahamut - Turn 1", serialized['en'])
 		Assertions.assertEquals("Verschlungene Schatten 1", serialized['de'])
 
-		
+		String asJson = new ObjectMapper().writeValueAsString(action.locationFull.nameStrings)
+		Assertions.assertEquals("{\"de\":\"Verschlungene Schatten 1\",\"en\":\"the Binding Coil of Bahamut - Turn 1\",\"fr\":\"le Labyrinthe de Bahamut I\",\"ja\":\"大迷宮バハムート：邂逅編1\"}", asJson)
+
+		// Test java serialization
+		AozAction rehydrated = serializeAndDeserialize(action)
+
+		Assertions.assertEquals(5, rehydrated.rowId)
+		Assertions.assertEquals(93, rehydrated.location)
+		Assertions.assertEquals("the Binding Coil of Bahamut - Turn 1", rehydrated.locationFull.name)
+		Assertions.assertEquals("Verschlungene Schatten 1", rehydrated.locationFull.nameDe)
+
 	}
 }
