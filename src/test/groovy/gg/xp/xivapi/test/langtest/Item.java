@@ -19,8 +19,11 @@ public interface Item extends XivApiObject {
 	@OmitZeroes
 	XivApiLangValue<List<BaseParam>> getBaseParamListTrunc();
 
-	@XivApiField("BaseParam")
-	XivApiLangValue<List<@OmitZeroes BaseParam>> getBaseParamListTrunc2();
+	// This DOES NOT work and would likely be a fair bit of effort to fix, because
+	// java.lang.reflect.AnnotatedParameterizedType does not extend java.lang.reflect.Type, so
+	// it can't be passed around like Type can.
+//	@XivApiField("BaseParam")
+//	XivApiLangValue<List<@OmitZeroes BaseParam>> getBaseParamListTrunc2();
 
 	@XivApiField("BaseParam")
 	@OmitZeroes

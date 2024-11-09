@@ -19,6 +19,8 @@ import gg.xp.xivapi.mappers.QueryFieldType;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 
 import java.io.IOException;
+import java.lang.reflect.AnnotatedParameterizedType;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
