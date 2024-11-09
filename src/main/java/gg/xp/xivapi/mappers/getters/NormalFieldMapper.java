@@ -8,6 +8,7 @@ import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.QueryField;
+import gg.xp.xivapi.mappers.QueryFieldType;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 
 import java.lang.reflect.Method;
@@ -57,7 +58,7 @@ public class NormalFieldMapper<X> implements FieldMapper<X> {
 			return List.of(QueryField.normalField(base));
 		}
 		else {
-			return inners.stream().map(inner -> inner.withPrefixPart(base)).toList();
+			return inners.stream().map(inner -> inner.withPrefixPart(QueryFieldType.Field, base)).toList();
 		}
 	}
 

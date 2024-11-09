@@ -1,5 +1,6 @@
 package gg.xp.xivapi.test.pagertest;
 
+import gg.xp.xivapi.annotations.XivApiLang;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.annotations.XivApiSheet;
 import gg.xp.xivapi.annotations.XivApiTransientField;
@@ -22,4 +23,5 @@ public interface AozAction extends XivApiObject {
 	@XivApiRaw
 	@XivApiTransientField
 	int getLocation();
+
 }

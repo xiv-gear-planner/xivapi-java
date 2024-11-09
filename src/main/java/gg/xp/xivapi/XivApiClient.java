@@ -126,6 +126,9 @@ public class XivApiClient implements AutoCloseable {
 			}
 			response = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
 			root = this.mapper.readTree(response);
+			if (root.has("code") && root.has("message")) {
+				throw new XivApiException("Xivapi returned error. Code %s, message '%s'".formatted(root.get("code"), root.get("message").textValue()));
+			}
 		}
 		catch (IOException | InterruptedException e) {
 			throw new RuntimeException(e);
