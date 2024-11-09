@@ -103,6 +103,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			}
 			else {
 				XivApiLang langAnn = method.getAnnotation(XivApiLang.class);
+				// TODO: these should use the decoration query fields
 				if (method.isAnnotationPresent(XivApiRaw.class)) {
 					fieldName += "@as(raw)";
 				}
@@ -182,31 +183,9 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 	@Override
 	public void buildQueryFields(QueryFieldsBuilder parent) {
-
-
-		List<QueryFieldsBuilder> normalFields = new ArrayList<>();
-		List<QueryFieldsBuilder> transientFields = new ArrayList<>();
-		@Nullable QueryFieldsBuilder wildcardNormal = null;
-		@Nullable QueryFieldsBuilder wildcardTransient = null;
-		// Iterate through each sub-mapping
-		outer:
 		for (FieldMapper<?> mapper : methodFieldMap.values()) {
 			mapper.buildQueryFields(parent);
 		}
-//		List<QueryFieldsBuilder> out = new ArrayList<>();
-//		if (wildcardNormal != null) {
-//			out.add(wildcardNormal);
-//		}
-//		else {
-//			out.addAll(normalFields);
-//		}
-//		if (wildcardTransient != null) {
-//			out.add(wildcardTransient);
-//		}
-//		else {
-//			out.addAll(transientFields);
-//		}
-//		return out;
 	}
 
 }
