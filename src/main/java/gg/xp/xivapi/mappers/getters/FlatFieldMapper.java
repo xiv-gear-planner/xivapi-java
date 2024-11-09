@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
-import gg.xp.xivapi.mappers.QueryField;
+import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -31,8 +31,7 @@ public class FlatFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public List<QueryField> getQueryFields() {
-		// These are not filterable, so return nothing
-		return List.of();
+	public void buildQueryFields(QueryFieldsBuilder parent) {
+		// Nothing to do
 	}
 }

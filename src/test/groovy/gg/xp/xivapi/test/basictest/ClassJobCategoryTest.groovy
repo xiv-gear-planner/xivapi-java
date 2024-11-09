@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Test
 
 class ClassJobCategoryTest {
 
+	/**
+	 * Standalone ClassJobCategory test to check @XivApiThis functionality at the top level
+	 */
 	@Test
 	void testClassJobCatgory() {
 		var client = new XivApiClient()

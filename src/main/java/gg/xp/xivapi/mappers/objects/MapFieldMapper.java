@@ -8,7 +8,7 @@ import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
-import gg.xp.xivapi.mappers.QueryField;
+import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -83,8 +82,8 @@ public class MapFieldMapper<X> implements FieldMapper<Map<String, X>> {
 	}
 
 	@Override
-	public List<QueryField> getQueryFields() {
-		return innerMapper.getQueryFields();
+	public void buildQueryFields(QueryFieldsBuilder parent) {
+		innerMapper.buildQueryFields(parent);
 	}
 
 }

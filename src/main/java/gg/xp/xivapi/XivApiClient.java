@@ -10,7 +10,8 @@ import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
 import gg.xp.xivapi.filters.SearchFilter;
 import gg.xp.xivapi.impl.XivApiContext;
-import gg.xp.xivapi.mappers.QueryField;
+import gg.xp.xivapi.mappers.QueryFieldsBuilder;
+import gg.xp.xivapi.mappers.RootQueryFieldsBuilder;
 import gg.xp.xivapi.mappers.objects.ObjectFieldMapper;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 import gg.xp.xivapi.pagination.ListOptions;
@@ -219,13 +220,14 @@ public class XivApiClient implements AutoCloseable {
 
 		ObjectFieldMapper<X> mapping = getMapping(cls);
 
-		List<QueryField> fields = mapping.getQueryFields();
+		RootQueryFieldsBuilder rootQf = new RootQueryFieldsBuilder();
+		mapping.buildQueryFields(rootQf);
 
 		URI uri = buildUri(builder -> builder
 				.appendPath("sheet")
 				.appendPath(sheetName)
 				.appendPath(String.valueOf(id))
-				.addParameters(MappingUtils.formatQueryFields(fields)));
+				.addParameters(rootQf.formatQueryFields()));
 
 		JsonNode root = sendGET(uri);
 
@@ -273,14 +275,15 @@ public class XivApiClient implements AutoCloseable {
 
 		ObjectFieldMapper<X> mapping = getMapping(cls);
 
-		List<QueryField> fields = mapping.getQueryFields();
+		RootQueryFieldsBuilder rootQf = new RootQueryFieldsBuilder();
+		mapping.buildQueryFields(rootQf);
 
 		int perPage = options.getPerPage();
 
 		URI firstPageUri = buildUri(builder -> builder
 				.appendPath("sheet")
 				.appendPath(sheetName)
-				.addParameters(MappingUtils.formatQueryFields(fields))
+				.addParameters(rootQf.formatQueryFields())
 				.setParameter("limit", String.valueOf(perPage)));
 
 		JsonNode firstPage = sendGET(firstPageUri);
@@ -310,7 +313,8 @@ public class XivApiClient implements AutoCloseable {
 
 		ObjectFieldMapper<X> mapping = getMapping(cls);
 
-		List<QueryField> fields = mapping.getQueryFields();
+		RootQueryFieldsBuilder rootQf = new RootQueryFieldsBuilder();
+		mapping.buildQueryFields(rootQf);
 
 		int perPage = options.getPerPage();
 
@@ -319,7 +323,7 @@ public class XivApiClient implements AutoCloseable {
 				.setParameter("sheets", sheetName)
 				.setParameter("query", filter.toFilterString())
 				.setParameter("limit", String.valueOf(perPage))
-				.addParameters(MappingUtils.formatQueryFields(fields)));
+				.addParameters(rootQf.formatQueryFields()));
 
 		JsonNode firstPage = sendGET(firstPageUri);
 

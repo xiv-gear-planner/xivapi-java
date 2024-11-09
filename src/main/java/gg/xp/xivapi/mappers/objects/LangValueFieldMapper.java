@@ -7,24 +7,19 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import gg.xp.xivapi.clienttypes.XivApiLangString;
 import gg.xp.xivapi.clienttypes.XivApiLangValue;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
 import gg.xp.xivapi.exceptions.XivApiMissingNodeException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
-import gg.xp.xivapi.mappers.QueryField;
-import gg.xp.xivapi.mappers.QueryFieldType;
+import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 
 import java.io.IOException;
-import java.lang.reflect.AnnotatedParameterizedType;
-import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -57,12 +52,12 @@ public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> 
 	@Override
 	public XivApiLangValue<X> getValue(JsonNode current, XivApiContext context) {
 		if (current == null) {
-			throw new XivApiMissingNodeException("'current' is null", null, XivApiLangString.class, method);
+			throw new XivApiMissingNodeException("'current' is null", null, XivApiLangValue.class, method);
 		}
 		String fieldName = isTransient ? "transient" : "fields";
 		var fieldsNode = current.get(fieldName);
 		if (fieldsNode == null) {
-			throw new XivApiMissingNodeException("'%s' node is missing".formatted(fieldName), current, XivApiLangString.class, method);
+			throw new XivApiMissingNodeException("'%s' node is missing".formatted(fieldName), current, XivApiLangValue.class, method);
 		}
 		Map<String, X> out = new HashMap<>(4);
 		fieldsNode.fields().forEachRemaining(entry -> {
@@ -80,22 +75,17 @@ public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> 
 	}
 
 	@Override
-	public List<QueryField> getQueryFields() {
-		List<QueryField> out = new ArrayList<>();
-		List<QueryField> innerFields = innerMapper.getQueryFields();
+	public void buildQueryFields(QueryFieldsBuilder parent) {
 		boolean isArray = MappingUtils.isArrayQueryType(innerTypeClass);
 		for (String lang : langs) {
-			String field = "%s@lang(%s)%s".formatted(fieldName, lang, isArray ? "[]" : "");
-			if (innerFields.isEmpty()) {
-				out.add(isTransient ? QueryField.transientField(field) : QueryField.normalField(field));
+			var child = QueryFieldsBuilder.normalField(fieldName);
+			if (isArray) {
+				child.markAsArray();
 			}
-			else {
-				for (QueryField qf : innerFields) {
-					out.add(qf.withPrefixPart(isTransient ? QueryFieldType.TransientField : QueryFieldType.Field, field));
-				}
-			}
+			child.addDecorator("lang(%s)".formatted(lang));
+			innerMapper.buildQueryFields(child);
+			parent.addChild(child);
 		}
-		return out;
 	}
 
 	public static class LangValueSerializer extends JsonSerializer<XivApiLangValue<?>> {

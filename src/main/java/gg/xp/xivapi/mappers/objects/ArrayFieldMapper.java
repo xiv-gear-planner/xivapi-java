@@ -7,8 +7,7 @@ import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
-import gg.xp.xivapi.mappers.QueryField;
-import gg.xp.xivapi.mappers.util.MappingUtils;
+import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,8 +78,9 @@ public class ArrayFieldMapper<X> implements FieldMapper<X[]> {
 	}
 
 	@Override
-	public List<QueryField> getQueryFields() {
-		return innerMapper.getQueryFields();
+	public void buildQueryFields(QueryFieldsBuilder parent) {
+		parent.markAsArray();
+		innerMapper.buildQueryFields(parent);
 	}
 
 }

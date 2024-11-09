@@ -8,7 +8,6 @@ import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.annotations.XivApiThis;
 import gg.xp.xivapi.annotations.XivApiTransientField;
-import gg.xp.xivapi.clienttypes.XivApiLangString;
 import gg.xp.xivapi.clienttypes.XivApiBase;
 import gg.xp.xivapi.clienttypes.XivApiLangValue;
 import gg.xp.xivapi.clienttypes.XivApiObject;
@@ -16,7 +15,7 @@ import gg.xp.xivapi.exceptions.XivApiDeserializationException;
 import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
-import gg.xp.xivapi.mappers.QueryField;
+import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 import gg.xp.xivapi.mappers.QueryFieldType;
 import gg.xp.xivapi.mappers.getters.MetaFieldMapper;
 import gg.xp.xivapi.mappers.getters.NormalFieldMapper;
@@ -104,6 +103,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			}
 			else {
 				XivApiLang langAnn = method.getAnnotation(XivApiLang.class);
+				// TODO: these should use the decoration query fields
 				if (method.isAnnotationPresent(XivApiRaw.class)) {
 					fieldName += "@as(raw)";
 				}
@@ -182,53 +182,10 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public List<QueryField> getQueryFields() {
-		List<QueryField> normalFields = new ArrayList<>();
-		List<QueryField> transientFields = new ArrayList<>();
-		@Nullable QueryField wildcardNormal = null;
-		@Nullable QueryField wildcardTransient = null;
-		// Iterate through each sub-mapping
-		outer:
+	public void buildQueryFields(QueryFieldsBuilder parent) {
 		for (FieldMapper<?> mapper : methodFieldMap.values()) {
-			for (QueryField qf : mapper.getQueryFields()) {
-				boolean isWildcard = qf.isAll();
-				boolean isTrans = qf.type() == QueryFieldType.TransientField;
-				if (isTrans) {
-					if (isWildcard) {
-						wildcardTransient = qf;
-					}
-					else {
-						transientFields.add(qf);
-					}
-				}
-				else {
-					if (isWildcard) {
-						wildcardNormal = qf;
-					}
-					else {
-						normalFields.add(qf);
-					}
-				}
-				if (wildcardNormal != null && wildcardTransient != null) {
-					// No point in continuing if everything is a wildcard anyway
-					break outer;
-				}
-			}
+			mapper.buildQueryFields(parent);
 		}
-		List<QueryField> out = new ArrayList<>();
-		if (wildcardNormal != null) {
-			out.add(wildcardNormal);
-		}
-		else {
-			out.addAll(normalFields);
-		}
-		if (wildcardTransient != null) {
-			out.add(wildcardTransient);
-		}
-		else {
-			out.addAll(transientFields);
-		}
-		return out;
 	}
 
 }

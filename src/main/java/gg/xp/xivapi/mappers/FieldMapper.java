@@ -6,8 +6,6 @@ import gg.xp.xivapi.mappers.getters.MetaFieldMapper;
 import gg.xp.xivapi.mappers.getters.NormalFieldMapper;
 import gg.xp.xivapi.mappers.objects.ObjectFieldMapper;
 
-import java.util.List;
-
 /**
  * Interface for a Xivapi JSON to POJO converter.
  * <p>
@@ -30,5 +28,5 @@ import java.util.List;
 public interface FieldMapper<X> {
 	X getValue(JsonNode current, XivApiContext context);
 
-	List<QueryField> getQueryFields();
+	void buildQueryFields(QueryFieldsBuilder parent);
 }
