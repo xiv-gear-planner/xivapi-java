@@ -57,8 +57,8 @@ public class AutoValueMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public List<QueryField> getQueryFields() {
-		return innerMapper.getQueryFields();
+	public void buildQueryFields(QueryFieldsBuilder parent) {
+		innerMapper.buildQueryFields(parent);
 	}
 
 }

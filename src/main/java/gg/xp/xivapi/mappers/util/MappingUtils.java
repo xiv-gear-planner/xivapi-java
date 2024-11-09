@@ -6,7 +6,7 @@ import gg.xp.xivapi.annotations.XivApiSheet;
 import gg.xp.xivapi.annotations.XivApiTransientField;
 import gg.xp.xivapi.clienttypes.XivApiSchemaVersion;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
-import gg.xp.xivapi.mappers.QueryField;
+import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 import gg.xp.xivapi.mappers.QueryFieldType;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
@@ -85,24 +85,6 @@ public final class MappingUtils {
 		}
 	}
 
-	public static List<NameValuePair> formatQueryFields(Collection<QueryField> fields) {
-		// TODO: test what happens if you have a sub-object with no fields
-		Map<QueryFieldType, List<QueryField>> grouped = fields.stream().collect(Collectors.groupingBy(QueryField::type));
-		return List.of(
-				new BasicNameValuePair("fields", formatQueryFieldsSub(grouped.getOrDefault(QueryFieldType.Field, List.of()))),
-				new BasicNameValuePair("transient", formatQueryFieldsSub(grouped.getOrDefault(QueryFieldType.TransientField, List.of())))
-		);
-	}
-
-	private static String formatQueryFieldsSub(Collection<QueryField> fields) {
-//		if (fields.isEmpty()) {
-//			return "*";
-//		}
-		return fields
-				.stream()
-				.map(QueryField::name)
-				.collect(Collectors.joining(","));
-	}
 
 	public static Class<?> parameterizedTypeToRawClass(Type typeOriginal) {
 		Type type = typeOriginal;

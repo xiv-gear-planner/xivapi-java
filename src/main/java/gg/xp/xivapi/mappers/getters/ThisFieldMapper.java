@@ -7,8 +7,7 @@ import gg.xp.xivapi.exceptions.XivApiMissingNodeException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
-import gg.xp.xivapi.mappers.QueryField;
-import gg.xp.xivapi.mappers.util.MappingUtils;
+import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -45,8 +44,8 @@ public class ThisFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public List<QueryField> getQueryFields() {
-		return List.of(isTransient ? QueryField.transientField(QueryField.ALL) : QueryField.normalField(QueryField.ALL));
+	public void buildQueryFields(QueryFieldsBuilder parent) {
+		parent.addChild(QueryFieldsBuilder.all());
 	}
 
 }

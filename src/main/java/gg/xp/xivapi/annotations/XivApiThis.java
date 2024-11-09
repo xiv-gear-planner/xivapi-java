@@ -10,6 +10,8 @@ import java.lang.annotation.RetentionPolicy;
  * is used, then it will instead deserialize '.'.
  * <p>
  * This annotation implies that all fields on this object should be retrieved, i.e. {@code fields=*} (or {@code transient=*}).
+ * At the top level, this can NOT be combined with fields that would require an annotation such as @raw or @lang,
+ * but this is possible within nested objects because you could request them separately.
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface XivApiThis {

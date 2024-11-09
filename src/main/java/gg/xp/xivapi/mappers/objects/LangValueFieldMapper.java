@@ -14,13 +14,11 @@ import gg.xp.xivapi.exceptions.XivApiMissingNodeException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
-import gg.xp.xivapi.mappers.QueryField;
+import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 import gg.xp.xivapi.mappers.QueryFieldType;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 
 import java.io.IOException;
-import java.lang.reflect.AnnotatedParameterizedType;
-import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -80,22 +78,17 @@ public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> 
 	}
 
 	@Override
-	public List<QueryField> getQueryFields() {
-		List<QueryField> out = new ArrayList<>();
-		List<QueryField> innerFields = innerMapper.getQueryFields();
+	public void buildQueryFields(QueryFieldsBuilder parent) {
 		boolean isArray = MappingUtils.isArrayQueryType(innerTypeClass);
 		for (String lang : langs) {
-			String field = "%s@lang(%s)%s".formatted(fieldName, lang, isArray ? "[]" : "");
-			if (innerFields.isEmpty()) {
-				out.add(isTransient ? QueryField.transientField(field) : QueryField.normalField(field));
+			var child = QueryFieldsBuilder.normalField(fieldName);
+			if (isArray) {
+				child.markAsArray();
 			}
-			else {
-				for (QueryField qf : innerFields) {
-					out.add(qf.withPrefixPart(isTransient ? QueryFieldType.TransientField : QueryFieldType.Field, field));
-				}
-			}
+			child.addDecorator("lang(%s)".formatted(lang));
+			innerMapper.buildQueryFields(child);
+			parent.addChild(child);
 		}
-		return out;
 	}
 
 	public static class LangValueSerializer extends JsonSerializer<XivApiLangValue<?>> {

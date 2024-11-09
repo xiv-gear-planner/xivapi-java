@@ -33,8 +33,7 @@ public class BasicValueMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public List<QueryField> getQueryFields() {
-		// At this point the field has already been selected, so nothing to do.
-		return List.of();
+	public void buildQueryFields(QueryFieldsBuilder parent) {
+		// Nothing to do
 	}
 }

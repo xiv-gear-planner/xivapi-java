@@ -7,7 +7,7 @@ import gg.xp.xivapi.exceptions.XivApiMissingNodeException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
-import gg.xp.xivapi.mappers.QueryField;
+import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 import gg.xp.xivapi.mappers.QueryFieldType;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 
@@ -50,16 +50,14 @@ public class NormalFieldMapper<X> implements FieldMapper<X> {
 	}
 
 	@Override
-	public List<QueryField> getQueryFields() {
-		List<QueryField> inners = innerMapper.getQueryFields();
+	public void buildQueryFields(QueryFieldsBuilder parent) {
+		var child = QueryFieldsBuilder.normalField(fieldName);
 		boolean isArray = MappingUtils.isArrayQueryType(fieldType);
-		String base = isArray ? fieldName + "[]" : fieldName;
-		if (inners.isEmpty()) {
-			return List.of(QueryField.normalField(base));
+		if (isArray) {
+			child.markAsArray();
 		}
-		else {
-			return inners.stream().map(inner -> inner.withPrefixPart(QueryFieldType.Field, base)).toList();
-		}
+		innerMapper.buildQueryFields(child);
+		parent.addChild(child);
 	}
 
 }
