@@ -25,4 +25,5 @@ public interface Item extends XivApiObject {
 	@XivApiField("BaseParam")
 	@OmitZeroes
 	XivApiLangValue<BaseParam[]> getBaseParamArrayTrunc();
+	// TODO: add the form of List<XivApiLangValue>[]
 }
