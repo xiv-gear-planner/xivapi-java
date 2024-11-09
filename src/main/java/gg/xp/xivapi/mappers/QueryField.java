@@ -24,6 +24,5 @@ public record QueryField(QueryFieldType type, String name) {
 	public boolean isAll() {
 		return ALL.equals(name());
 	}
-	//
 
 }
