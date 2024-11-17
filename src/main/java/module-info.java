@@ -6,6 +6,7 @@ module gg.xp.xivapi {
 	requires org.apache.commons.collections4;
 	requires org.apache.httpcomponents.core5.httpcore5;
 	requires java.management;
+	requires org.apache.commons.lang3;
 	exports gg.xp.xivapi;
 	exports gg.xp.xivapi.annotations;
 	exports gg.xp.xivapi.clienttypes;

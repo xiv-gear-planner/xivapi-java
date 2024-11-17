@@ -14,10 +14,12 @@ import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 import gg.xp.xivapi.mappers.RootQueryFieldsBuilder;
 import gg.xp.xivapi.mappers.objects.ObjectFieldMapper;
 import gg.xp.xivapi.mappers.util.MappingUtils;
+import gg.xp.xivapi.mappers.util.ThreadingUtils;
 import gg.xp.xivapi.pagination.ListOptions;
 import gg.xp.xivapi.pagination.XivApiListPaginator;
 import gg.xp.xivapi.pagination.XivApiPaginator;
 import gg.xp.xivapi.pagination.XivApiSearchPaginator;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.net.URIBuilder;
@@ -49,7 +51,9 @@ import java.util.function.Consumer;
 public class XivApiClient implements AutoCloseable {
 	private static final Logger log = LoggerFactory.getLogger(XivApiClient.class);
 
-	private static final ExecutorService exs = Executors.newCachedThreadPool();
+	private static final ExecutorService exs = Executors.newCachedThreadPool(
+			ThreadingUtils.namedDaemonThreadFactory("XivApiClient")
+	);
 
 	private final ObjectMapper mapper = new ObjectMapper();
 	private final XivApiSettings settings;
