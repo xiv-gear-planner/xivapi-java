@@ -102,7 +102,7 @@ public abstract sealed class XivApiPaginator<X extends XivApiObject> implements 
 			Iterable<JsonNode> iter = rows::elements;
 			values = StreamSupport.stream(iter.spliterator(), false)
 					.map(node -> {
-						var context = new XivApiContext(node, client.getSettings(), sv);
+						var context = new XivApiContext(node, client.getSettings(), sv, client);
 						return mapper.getValue(node, context);
 					})
 					.toList();

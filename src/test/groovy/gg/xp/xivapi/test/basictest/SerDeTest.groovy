@@ -1,6 +1,7 @@
 package gg.xp.xivapi.test.basictest
 
 import gg.xp.xivapi.XivApiClient
+import gg.xp.xivapi.assets.ImageFormat
 import gg.xp.xivapi.clienttypes.XivApiSettings
 import gg.xp.xivapi.debug.DebugUtils
 import groovy.transform.CompileStatic
@@ -128,6 +129,16 @@ class SerDeTest {
 	@Test
 	void testIconUrl() {
 		Assertions.assertEquals(new URI("https://beta.xivapi.com/api/1/asset/ui/icon/024000/024103.tex?format=png"), item.icon.pngIconUrl)
+	}
+
+	@Test
+	void testIconAssetUrl() {
+		Assertions.assertEquals(new URI("https://beta.xivapi.com/api/1/asset/ui/icon/024000/024103_hr1.tex?format=png"), item.icon.assetPathHD.getURI(ImageFormat.PNG))
+	}
+
+	@Test
+	void testIconAssetUrlAsUri() {
+		Assertions.assertEquals(new URI("https://beta.xivapi.com/api/1/asset/ui/icon/024000/024103_hr1.tex?format=jpg"), item.icon.assetPathHDasURI)
 	}
 
 	@Test

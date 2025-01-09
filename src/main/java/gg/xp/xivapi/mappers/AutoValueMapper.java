@@ -2,9 +2,13 @@ package gg.xp.xivapi.mappers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gg.xp.xivapi.annotations.XivApiAssetPath;
+import gg.xp.xivapi.clienttypes.XivApiAsset;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.clienttypes.XivApiStruct;
 import gg.xp.xivapi.impl.XivApiContext;
+import gg.xp.xivapi.mappers.getters.AssetFieldMapper;
+import gg.xp.xivapi.mappers.getters.AssetUrlFieldMapper;
 import gg.xp.xivapi.mappers.objects.ArrayFieldMapper;
 import gg.xp.xivapi.mappers.objects.ListFieldMapper;
 import gg.xp.xivapi.mappers.objects.MapFieldMapper;
@@ -14,6 +18,7 @@ import gg.xp.xivapi.mappers.util.MappingUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +34,6 @@ public class AutoValueMapper<X> implements FieldMapper<X> {
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public AutoValueMapper(Class<X> returnType, Method method, Type returnTypeFull, ObjectMapper mapper) {
 		if (XivApiObject.class.isAssignableFrom(returnType)) {
-			// TODO: split ObjectFieldMapper into top-level and nested?
 			innerMapper = new ObjectFieldMapper<>(returnType, mapper);
 		}
 		else if (XivApiStruct.class.isAssignableFrom(returnType)) {
@@ -45,6 +49,12 @@ public class AutoValueMapper<X> implements FieldMapper<X> {
 		}
 		else if (returnType.equals(Map.class)) {
 			innerMapper = new MapFieldMapper(returnType, method, returnTypeFull, mapper);
+		}
+		else if (returnType.equals(XivApiAsset.class)) {
+			innerMapper = (FieldMapper<X>) new AssetFieldMapper<>();
+		}
+		else if (method.isAnnotationPresent(XivApiAssetPath.class)) {
+			innerMapper = new AssetUrlFieldMapper<>(returnType, method, mapper);
 		}
 		else {
 			innerMapper = new BasicValueMapper<>(returnType, method, mapper);

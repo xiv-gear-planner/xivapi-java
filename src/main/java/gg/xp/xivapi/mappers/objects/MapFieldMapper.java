@@ -24,9 +24,7 @@ import java.util.regex.Pattern;
 /**
  * Mapper for Map types. Keys are always String. Value is generic.
  * <p>
- * TODO: this also needs to tell the parent mapper that it needs to include all children
- *
- * TODO: also support this at the top-level
+ * TODO: support this at the top-level
  *
  * @param <X> The list type (e.g. List of String, not String)
  */

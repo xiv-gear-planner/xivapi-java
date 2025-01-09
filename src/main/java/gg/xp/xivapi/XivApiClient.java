@@ -3,25 +3,24 @@ package gg.xp.xivapi;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gg.xp.xivapi.assets.AssetFormat;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.clienttypes.XivApiSchemaVersion;
 import gg.xp.xivapi.clienttypes.XivApiSettings;
 import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
 import gg.xp.xivapi.filters.SearchFilter;
+import gg.xp.xivapi.impl.UrlResolverImpl;
 import gg.xp.xivapi.impl.XivApiContext;
-import gg.xp.xivapi.mappers.QueryFieldsBuilder;
-import gg.xp.xivapi.mappers.RootQueryFieldsBuilder;
 import gg.xp.xivapi.mappers.objects.ObjectFieldMapper;
+import gg.xp.xivapi.mappers.objects.RootMapper;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 import gg.xp.xivapi.mappers.util.ThreadingUtils;
 import gg.xp.xivapi.pagination.ListOptions;
 import gg.xp.xivapi.pagination.XivApiListPaginator;
 import gg.xp.xivapi.pagination.XivApiPaginator;
 import gg.xp.xivapi.pagination.XivApiSearchPaginator;
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.message.BasicNameValuePair;
+import gg.xp.xivapi.url.XivApiUrlResolver;
 import org.apache.hc.core5.net.URIBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -29,11 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +45,7 @@ import java.util.function.Consumer;
 /**
  * The main xivapi client class.
  */
-public class XivApiClient implements AutoCloseable {
+public class XivApiClient implements AutoCloseable, XivApiUrlResolver {
 	private static final Logger log = LoggerFactory.getLogger(XivApiClient.class);
 
 	private static final ExecutorService exs = Executors.newCachedThreadPool(
@@ -59,6 +56,7 @@ public class XivApiClient implements AutoCloseable {
 	private final XivApiSettings settings;
 	private final HttpClient client;
 	private final @Nullable Semaphore limiter;
+	private final UrlResolverImpl urlResolver;
 	private ListOptions<XivApiObject> defaultListOpts = ListOptions.<XivApiObject>newBuilder().build();
 
 	/**
@@ -70,15 +68,15 @@ public class XivApiClient implements AutoCloseable {
 	 */
 	public XivApiClient(XivApiSettings settings) {
 		this.settings = settings;
-		// TODO: replace with apache http client
-		this.client = HttpClient.newBuilder().build();
+		client = HttpClient.newBuilder().build();
 		int limit = settings.getConcurrencyLimit();
 		if (limit > 0) {
-			this.limiter = new Semaphore(limit);
+			limiter = new Semaphore(limit);
 		}
 		else {
-			this.limiter = null;
+			limiter = null;
 		}
+		this.urlResolver = new UrlResolverImpl(settings);
 	}
 
 	/**
@@ -122,7 +120,7 @@ public class XivApiClient implements AutoCloseable {
 
 		log.info("GET URI: {}", uri);
 
-		HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+		HttpRequest request = HttpRequest.newBuilder(uri).GET().header("User-Agent", settings.getUserAgent()).build();
 		String response;
 		JsonNode root;
 		try {
@@ -130,7 +128,7 @@ public class XivApiClient implements AutoCloseable {
 				limiter.acquire();
 			}
 			response = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-			root = this.mapper.readTree(response);
+			root = mapper.readTree(response);
 			if (root.has("code") && root.has("message")) {
 				throw new XivApiException("Xivapi returned error. Code %s, message '%s'".formatted(root.get("code"), root.get("message").textValue()));
 			}
@@ -146,7 +144,7 @@ public class XivApiClient implements AutoCloseable {
 		return root;
 	}
 
-	private final Map<Class<? extends XivApiObject>, Future<ObjectFieldMapper<? extends XivApiObject>>> mappingCache = new ConcurrentHashMap<>();
+	private final Map<Class<? extends XivApiObject>, Future<RootMapper<? extends XivApiObject>>> rootMappingCache = new ConcurrentHashMap<>();
 
 	/**
 	 * Get or create the mapping for an object type
@@ -156,11 +154,11 @@ public class XivApiClient implements AutoCloseable {
 	 * @return The mapping
 	 */
 	@SuppressWarnings("unchecked")
-	private <X extends XivApiObject> ObjectFieldMapper<X> getMapping(Class<X> cls) {
+	private <X extends XivApiObject> RootMapper<X> getMapping(Class<X> cls) {
 
-		Future<ObjectFieldMapper<? extends XivApiObject>> existing = mappingCache.computeIfAbsent(cls, (clazz) -> exs.submit(() -> new ObjectFieldMapper<>(cls, mapper)));
+		Future<RootMapper<? extends XivApiObject>> existing = rootMappingCache.computeIfAbsent(cls, (clazz) -> exs.submit(() -> new RootMapper<>(new ObjectFieldMapper<>(cls, mapper))));
 		try {
-			return (ObjectFieldMapper<X>) existing.get();
+			return (RootMapper<X>) existing.get();
 		}
 		catch (InterruptedException e) {
 			throw new RuntimeException(e);
@@ -169,28 +167,13 @@ public class XivApiClient implements AutoCloseable {
 			//noinspection ThrowInsideCatchBlockWhichIgnoresCaughtException
 			throw new XivApiMappingException("Failed to construct mapping for %s".formatted(cls), e.getCause());
 		}
-
-	}
-
-	/**
-	 * @return Default URL query parameters for all requests
-	 */
-	private List<NameValuePair> getDefaultParams() {
-		List<NameValuePair> out = new ArrayList<>();
-		if (settings.getGameVersion() != null) {
-			out.add(new BasicNameValuePair("version", settings.getGameVersion()));
-		}
-		if (settings.getSchemaVersion() != null) {
-			out.add(new BasicNameValuePair("schema", settings.getSchemaVersion()));
-		}
-		return out;
 	}
 
 	/**
 	 * @return A URI builder, initialized to the base URI plus default query params
 	 */
 	public URIBuilder buildUri() {
-		return new URIBuilder(getBaseUri()).addParameters(getDefaultParams());
+		return urlResolver.buildUri();
 	}
 
 	/**
@@ -200,14 +183,7 @@ public class XivApiClient implements AutoCloseable {
 	 * @return the built URI
 	 */
 	public URI buildUri(Consumer<URIBuilder> func) {
-		URIBuilder builder = buildUri();
-		func.accept(builder);
-		try {
-			return builder.build();
-		}
-		catch (URISyntaxException e) {
-			throw new XivApiException("Error constructing URI", e);
-		}
+		return urlResolver.buildUri(func);
 	}
 
 	/**
@@ -222,24 +198,21 @@ public class XivApiClient implements AutoCloseable {
 
 		String sheetName = MappingUtils.validateAndGetSheetName(cls);
 
-		ObjectFieldMapper<X> mapping = getMapping(cls);
-
-		RootQueryFieldsBuilder rootQf = new RootQueryFieldsBuilder();
-		mapping.buildQueryFields(rootQf);
+		RootMapper<X> mapping = getMapping(cls);
 
 		URI uri = buildUri(builder -> builder
 				.appendPath("sheet")
 				.appendPath(sheetName)
 				.appendPath(String.valueOf(id))
-				.addParameters(rootQf.formatQueryFields()));
+				.addParameters(mapping.getQueryFields()));
 
 		JsonNode root = sendGET(uri);
 
 		XivApiSchemaVersion sv = MappingUtils.makeSchemaVersion(root.get("schema").textValue());
 
-		XivApiContext context = new XivApiContext(root, settings, sv);
+		XivApiContext context = new XivApiContext(root, settings, sv, urlResolver);
 
-		return mapping.getValue(root, context);
+		return mapping.getWrappedMapper().getValue(root, context);
 	}
 
 	/**
@@ -277,22 +250,19 @@ public class XivApiClient implements AutoCloseable {
 	public <X extends XivApiObject> XivApiPaginator<X> getListIterator(Class<X> cls, ListOptions<? super X> options) {
 		String sheetName = MappingUtils.validateAndGetSheetName(cls);
 
-		ObjectFieldMapper<X> mapping = getMapping(cls);
-
-		RootQueryFieldsBuilder rootQf = new RootQueryFieldsBuilder();
-		mapping.buildQueryFields(rootQf);
+		RootMapper<X> mapping = getMapping(cls);
 
 		int perPage = options.getPerPage();
 
 		URI firstPageUri = buildUri(builder -> builder
 				.appendPath("sheet")
 				.appendPath(sheetName)
-				.addParameters(rootQf.formatQueryFields())
+				.addParameters(mapping.getQueryFields())
 				.setParameter("limit", String.valueOf(perPage)));
 
 		JsonNode firstPage = sendGET(firstPageUri);
 
-		return new XivApiListPaginator<>(this, firstPage, firstPageUri, options::shouldStop, mapping, 100);
+		return new XivApiListPaginator<>(this, firstPage, firstPageUri, options::shouldStop, mapping.getWrappedMapper(), 100);
 	}
 
 	public <X extends XivApiObject> XivApiPaginator<X> getSearchIterator(Class<X> cls, SearchFilter filter) {
@@ -315,10 +285,7 @@ public class XivApiClient implements AutoCloseable {
 	public <X extends XivApiObject> XivApiPaginator<X> getSearchIterator(Class<X> cls, SearchFilter filter, ListOptions<? super X> options) {
 		String sheetName = MappingUtils.validateAndGetSheetName(cls);
 
-		ObjectFieldMapper<X> mapping = getMapping(cls);
-
-		RootQueryFieldsBuilder rootQf = new RootQueryFieldsBuilder();
-		mapping.buildQueryFields(rootQf);
+		RootMapper<X> mapping = getMapping(cls);
 
 		int perPage = options.getPerPage();
 
@@ -327,18 +294,33 @@ public class XivApiClient implements AutoCloseable {
 				.setParameter("sheets", sheetName)
 				.setParameter("query", filter.toFilterString())
 				.setParameter("limit", String.valueOf(perPage))
-				.addParameters(rootQf.formatQueryFields()));
+				.addParameters(mapping.getQueryFields()));
 
 		JsonNode firstPage = sendGET(firstPageUri);
 
-		return new XivApiSearchPaginator<>(this, firstPage, firstPageUri, options::shouldStop, mapping, 100);
+		return new XivApiSearchPaginator<>(this, firstPage, firstPageUri, options::shouldStop, mapping.getWrappedMapper(), 100);
 	}
 
+	/**
+	 * @return The list of available game versions.
+	 */
 	public List<String> getGameVersions() {
 		URI uri = buildUri(builder -> builder.appendPath("version"));
 		JsonNode result = sendGET(uri);
-		return mapper.convertValue(result, new TypeReference<List<String>>() {
+		return mapper.convertValue(result, new TypeReference<>() {
 		});
+	}
+
+	public URI getAssetUri(String assetPath, AssetFormat format) {
+		return urlResolver.getAssetUri(assetPath, format);
+	}
+
+	public URI getAssetUri(String assetPath, String format) {
+		return urlResolver.getAssetUri(assetPath, format);
+	}
+
+	public <X extends XivApiObject> void validateModel(Class<X> clazz) {
+		getMapping(clazz);
 	}
 
 	/**
@@ -347,6 +329,6 @@ public class XivApiClient implements AutoCloseable {
 	@Override
 	public void close() {
 		client.close();
-		mappingCache.clear();
+		rootMappingCache.clear();
 	}
 }

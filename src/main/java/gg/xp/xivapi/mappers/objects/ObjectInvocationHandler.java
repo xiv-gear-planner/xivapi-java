@@ -127,6 +127,7 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 		return new SerializableForm(metaMap, strict);
 	}
 
+	// TODO: figure out a way to also allow this to make use of KeyedAlikeMap (check if worth)
 	private record SerializableForm(Map<MethodMetadata, Object> methodMetaMap, boolean strict) implements Serializable {
 		private Object readResolve() {
 			Map<Method, Object> methodMap = new HashMap<>(methodMetaMap.size());

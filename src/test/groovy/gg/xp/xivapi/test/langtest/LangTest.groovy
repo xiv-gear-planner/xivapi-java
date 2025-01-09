@@ -24,8 +24,6 @@ class LangTest {
 		Assertions.assertEquals(93, action.location)
 		Assertions.assertEquals("the Binding Coil of Bahamut - Turn 1", action.locationFull.name)
 		Assertions.assertEquals("Verschlungene Schatten 1", action.locationFull.nameDe)
-		// TODO: this one specifically doesn't work yet
-		// https://discord.com/channels/474518001173921794/474519195963490305/1303576638482681867
 		Assertions.assertEquals("Verschlungene Schatten 1", action.locationDe.name)
 
 		Assertions.assertEquals("Verschlungene Schatten 1", action.locationsAll.de.name)

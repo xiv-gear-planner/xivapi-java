@@ -1,6 +1,9 @@
 package gg.xp.xivapi.test.basictest;
 
+import gg.xp.xivapi.annotations.XivApiAssetPath;
 import gg.xp.xivapi.annotations.XivApiField;
+import gg.xp.xivapi.assets.ImageFormat;
+import gg.xp.xivapi.clienttypes.XivApiAsset;
 import gg.xp.xivapi.clienttypes.XivApiStruct;
 
 import java.net.URI;
@@ -15,6 +18,14 @@ public interface Icon extends XivApiStruct {
 
 	@XivApiField("path_hr1")
 	String getPathHD();
+
+	@XivApiField("path_hr1")
+	XivApiAsset<ImageFormat> getAssetPathHD();
+
+	@XivApiField("path_hr1")
+	@XivApiAssetPath(format = "jpg")
+	URI getAssetPathHDasURI();
+
 
 	// TODO: this should move, otherwise it won't be possible to change the base url
 	default URI getPngIconUrl() {

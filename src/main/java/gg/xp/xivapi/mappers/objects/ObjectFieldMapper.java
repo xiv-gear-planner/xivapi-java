@@ -8,15 +8,18 @@ import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.annotations.XivApiThis;
 import gg.xp.xivapi.annotations.XivApiTransientField;
+import gg.xp.xivapi.clienttypes.XivApiAsset;
 import gg.xp.xivapi.clienttypes.XivApiBase;
 import gg.xp.xivapi.clienttypes.XivApiLangValue;
 import gg.xp.xivapi.clienttypes.XivApiObject;
+import gg.xp.xivapi.collections.KeyedAlikeMapFactory;
 import gg.xp.xivapi.exceptions.XivApiDeserializationException;
 import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 import gg.xp.xivapi.mappers.QueryFieldType;
+import gg.xp.xivapi.mappers.getters.AssetFieldMapper;
 import gg.xp.xivapi.mappers.getters.MetaFieldMapper;
 import gg.xp.xivapi.mappers.getters.NormalFieldMapper;
 import gg.xp.xivapi.mappers.getters.ThisFieldMapper;
@@ -29,9 +32,11 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Mapper for full sheet objects, both top-level and nested.
@@ -54,6 +59,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 	private final Method ridMethod;
 	private final Method svMethod;
 	private final Method tsMethod;
+	private final KeyedAlikeMapFactory<Method> kaMapFactory;
 
 	public ObjectFieldMapper(Class<X> cls, ObjectMapper mapper) {
 		this.objectType = cls;
@@ -90,7 +96,6 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 			FieldMapper<?> fieldMapper;
 
-			// TODO: there is no transient equivalent of this
 			if (thisAnn != null) {
 				fieldMapper = new ThisFieldMapper<>(transientFieldAnn != null, returnType, method, mapper);
 			}
@@ -98,6 +103,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 				// If it is a meta field (value, row_id, score, etc), use MetaFieldMapper
 				fieldMapper = new MetaFieldMapper<>(fieldName, returnType, method, mapper);
 			}
+			// This reads from multiple fields at this level, so it needs to be here rather than AutoValueMapper.
 			else if (returnType.equals(XivApiLangValue.class)) {
 				fieldMapper = new LangValueFieldMapper<>(fieldName, transientFieldAnn != null, method, mapper);
 			}
@@ -120,8 +126,13 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 				}
 			}
 			methodFieldMap.put(method, fieldMapper);
-
 		}
+		Set<Method> allMethods = new HashSet<>(methodFieldMap.keySet());
+		allMethods.add(pkMethod);
+		allMethods.add(ridMethod);
+		allMethods.add(svMethod);
+		allMethods.add(tsMethod);
+		this.kaMapFactory = new KeyedAlikeMapFactory<>(allMethods);
 	}
 
 	@Override
@@ -129,7 +140,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 		int primaryKey;
 		int rowId;
-		final Map<Method, Object> methodValueMap = new LinkedHashMap<>();
+		final Map<Method, Object> methodValueMap = kaMapFactory.create();
 		try {
 			// If this is nested (i.e. it is not the root node), and it has a value of 0 but lacks row_id and/or fields,
 			// then it is actually a null.

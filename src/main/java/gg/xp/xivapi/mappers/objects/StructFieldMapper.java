@@ -3,6 +3,7 @@ package gg.xp.xivapi.mappers.objects;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.clienttypes.XivApiBase;
+import gg.xp.xivapi.collections.KeyedAlikeMapFactory;
 import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.clienttypes.XivApiStruct;
 import gg.xp.xivapi.impl.XivApiContext;
@@ -15,9 +16,11 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class StructFieldMapper<X> implements FieldMapper<X> {
 
@@ -26,6 +29,7 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 	private final Class<X> objectType;
 	private final Method svMethod;
 	private final Method tsMethod;
+	private final KeyedAlikeMapFactory<Method> kaMapFactory;
 
 	public StructFieldMapper(Class<X> cls, ObjectMapper mapper) {
 		this.objectType = cls;
@@ -55,12 +59,16 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 			methodFieldMap.put(method, fieldMapper);
 
 		}
+		Set<Method> allMethods = new HashSet<>(methodFieldMap.keySet());
+		allMethods.add(svMethod);
+		allMethods.add(tsMethod);
+		this.kaMapFactory = new KeyedAlikeMapFactory<>(allMethods);
 	}
 
 	@Override
 	public X getValue(JsonNode current, XivApiContext context) {
 
-		final Map<Method, Object> methodValueMap = new LinkedHashMap<>();
+		final Map<Method, Object> methodValueMap = kaMapFactory.create();
 		methodValueMap.put(svMethod, context.schemaVersion());
 		methodValueMap.put(tsMethod, "%s(StructProxy)".formatted(objectType.getSimpleName()));
 		methodFieldMap.forEach((method, fieldMapper) -> {
