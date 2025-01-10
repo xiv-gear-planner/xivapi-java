@@ -24,7 +24,7 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 	private static final Logger log = LoggerFactory.getLogger(ObjectInvocationHandler.class);
 
 	@Serial
-	private static final long serialVersionUID = -7240936731264081327L;
+	private static final long serialVersionUID = -7240936731264081326L;
 
 	private static final Method equalsMethod;
 	private static final Method hashCodeMethod;
@@ -66,7 +66,7 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 			// Handle default java object methods
 			if (method.getDeclaringClass().equals(Object.class)) {
 				if (method.equals(hashCodeMethod)) {
-					return methodValueMap.hashCode();
+					return MappingUtils.methodMapHashCode(methodValueMap);
 				}
 				else if (method.equals(equalsMethod)) {
 					Object that = args[0];
@@ -129,6 +129,7 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 
 	// TODO: figure out a way to also allow this to make use of KeyedAlikeMap (check if worth)
 	private record SerializableForm(Map<MethodMetadata, Object> methodMetaMap, boolean strict) implements Serializable {
+		@Serial
 		private Object readResolve() {
 			Map<Method, Object> methodMap = new HashMap<>(methodMetaMap.size());
 			for (var entry : methodMetaMap.entrySet()) {
@@ -144,6 +145,7 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 	}
 
 	public static class MethodMetadata implements Serializable {
+		@Serial
 		private static final long serialVersionUID = 1L;
 
 		private final String methodName;

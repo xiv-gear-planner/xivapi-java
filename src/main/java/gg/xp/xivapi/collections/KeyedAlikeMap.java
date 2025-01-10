@@ -42,6 +42,7 @@ public class KeyedAlikeMap<K, V> implements Map<K, V> {
 	private final Object NULL_MARKER = new Object();
 
 	KeyedAlikeMap(Map<K, Integer> keyMapping) {
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		this.keyMapping = keyMapping;
 		valueMapping = new Object[keyMapping.size()];
 	}
@@ -184,7 +185,7 @@ public class KeyedAlikeMap<K, V> implements Map<K, V> {
 	public Collection<V> values() {
 		return new AbstractCollection<>() {
 			@Override
-			public Iterator<V> iterator() {
+			public @NotNull Iterator<V> iterator() {
 				return Arrays.stream(valueMapping)
 						.flatMap(valueRaw -> {
 							if (valueRaw == null) {
@@ -214,7 +215,7 @@ public class KeyedAlikeMap<K, V> implements Map<K, V> {
 	public Set<Entry<K, V>> entrySet() {
 		return new AbstractSet<>() {
 			@Override
-			public Iterator<Entry<K, V>> iterator() {
+			public @NotNull Iterator<Entry<K, V>> iterator() {
 				return keyMapping.keySet().stream().map(key -> {
 					int index = indexForStrict(key);
 					Object valueRaw = valueMapping[index];
@@ -225,23 +226,7 @@ public class KeyedAlikeMap<K, V> implements Map<K, V> {
 						valueRaw = null;
 					}
 					Object finalValueRaw = valueRaw;
-					Entry<K, V> out = new Entry<>() {
-						@Override
-						public K getKey() {
-							return key;
-						}
-
-						@Override
-						public V getValue() {
-							return (V) finalValueRaw;
-						}
-
-						@Override
-						public V setValue(Object value) {
-							throw new UnsupportedOperationException();
-						}
-					};
-					return out;
+					return (Entry<K, V>) new EntryImpl<>(key, (V) finalValueRaw);
 				}).filter(Objects::nonNull).iterator();
 			}
 
@@ -250,6 +235,24 @@ public class KeyedAlikeMap<K, V> implements Map<K, V> {
 				return KeyedAlikeMap.this.size();
 			}
 		};
+	}
+
+	private record EntryImpl<K, V>(K key, V value) implements Map.Entry<K, V> {
+
+		@Override
+		public K getKey() {
+			return key;
+		}
+
+		@Override
+		public V getValue() {
+			return value;
+		}
+
+		@Override
+		public V setValue(Object value) {
+			throw new UnsupportedOperationException("Cannot set values via entrySet()");
+		}
 	}
 
 	@Override

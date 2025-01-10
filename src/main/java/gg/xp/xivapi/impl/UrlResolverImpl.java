@@ -14,9 +14,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
-public class UrlResolverImpl implements XivApiUrlResolver, Serializable {
+public final class UrlResolverImpl implements XivApiUrlResolver, Serializable {
 	@Serial
 	private static final long serialVersionUID = -1458487307014327401L;
 	private final URI baseUri;
@@ -81,4 +82,16 @@ public class UrlResolverImpl implements XivApiUrlResolver, Serializable {
 		}
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof UrlResolverImpl other
+		       && Objects.equals(baseAssetUri, other.baseAssetUri)
+		       && Objects.equals(baseUri, other.baseUri)
+		       && Objects.equals(defaultParams, other.defaultParams);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(baseUri, baseAssetUri, defaultParams);
+	}
 }

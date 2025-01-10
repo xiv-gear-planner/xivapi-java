@@ -8,23 +8,19 @@ import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.QueryFieldsBuilder;
-import gg.xp.xivapi.mappers.QueryFieldType;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 
 import java.lang.reflect.Method;
-import java.util.List;
 
 public class TransientFieldMapper<X> implements FieldMapper<X> {
 	private final String fieldName;
 	private final Class<X> fieldType;
-	private final ObjectMapper mapper;
 	private final FieldMapper<X> innerMapper;
 	private final Method method;
 
 	public TransientFieldMapper(String fieldName, Class<X> fieldType, Method method, ObjectMapper mapper) {
 		this.fieldName = fieldName;
 		this.fieldType = fieldType;
-		this.mapper = mapper;
 		this.method = method;
 		this.innerMapper = new AutoValueMapper<>(fieldType, method, method.getGenericReturnType(), mapper);
 	}

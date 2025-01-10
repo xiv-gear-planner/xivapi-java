@@ -6,8 +6,11 @@ import gg.xp.xivapi.annotations.XivApiAssetPath;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.QueryFieldsBuilder;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.HashMap;
 
 public class AssetUrlFieldMapper<X> implements FieldMapper<X> {
 
@@ -29,8 +32,8 @@ public class AssetUrlFieldMapper<X> implements FieldMapper<X> {
 	public X getValue(JsonNode current, XivApiContext context) {
 		try {
 			String raw = current.textValue();
-			context.urlResolver().getAssetUri(raw, format);
-			return mapper.convertValue(raw, returnType);
+			URI out = context.urlResolver().getAssetUri(raw, format);
+			return mapper.convertValue(out, returnType);
 		}
 		catch (Throwable t) {
 			throw new RuntimeException("Error deserializing", t);

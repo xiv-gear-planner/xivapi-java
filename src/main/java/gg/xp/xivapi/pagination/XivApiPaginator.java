@@ -35,7 +35,7 @@ public abstract sealed class XivApiPaginator<X extends XivApiObject> implements 
 	private int globalBaseIndex;
 	private boolean hasHitStopCondition;
 
-	protected XivApiPaginator(XivApiClient client, URI originalUri, BiPredicate<Integer, X> stopCondition, FieldMapper<X> mapper, int perPageItemCount, JsonNode firstResponse) {
+	XivApiPaginator(XivApiClient client, URI originalUri, BiPredicate<Integer, X> stopCondition, FieldMapper<X> mapper, int perPageItemCount, JsonNode firstResponse) {
 		this.client = client;
 		this.originalUri = originalUri;
 		this.stopCondition = stopCondition;

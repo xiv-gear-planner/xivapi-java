@@ -25,7 +25,7 @@ public class BufferedIterator<X> implements Iterator<X> {
 				iter.forEachRemaining(this::add);
 			}
 			catch (Throwable t) {
-				log.error("BufferedIterator failed to read from %s".formatted(iter), t);
+				log.error("BufferedIterator failed to read from {}", iter, t);
 			}
 			finally {
 				done();

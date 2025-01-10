@@ -2,6 +2,7 @@ package gg.xp.xivapi.pagination;
 
 import java.util.function.BiPredicate;
 
+@SuppressWarnings("ClassCanBeRecord") // Future expansion
 public class ListOptions<X> {
 	private final int perPage;
 	private final BiPredicate<Integer, X> stopCondition;

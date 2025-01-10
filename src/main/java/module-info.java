@@ -10,7 +10,6 @@ module gg.xp.xivapi {
 	exports gg.xp.xivapi;
 	exports gg.xp.xivapi.annotations;
 	exports gg.xp.xivapi.clienttypes;
-	exports gg.xp.xivapi.debug;
 	exports gg.xp.xivapi.exceptions;
 	exports gg.xp.xivapi.filters;
 	exports gg.xp.xivapi.pagination;

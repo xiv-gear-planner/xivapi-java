@@ -32,7 +32,6 @@ public class MapFieldMapper<X> implements FieldMapper<Map<String, X>> {
 
 	private static final Logger log = LoggerFactory.getLogger(MapFieldMapper.class);
 	private final AutoValueMapper<X> innerMapper;
-	private final Class<X> valueType;
 	private final boolean omitZero;
 	private final Predicate<String> includeKey;
 
@@ -42,7 +41,7 @@ public class MapFieldMapper<X> implements FieldMapper<Map<String, X>> {
 			throw new IllegalArgumentException("Type must be an array, not %s".formatted(cls));
 		}
 		Type valueTypeFull = ((ParameterizedType) returnTypeFull).getActualTypeArguments()[1];
-		this.valueType = (Class<X>) MappingUtils.parameterizedTypeToRawClass(valueTypeFull);
+		Class<X> valueType = (Class<X>) MappingUtils.parameterizedTypeToRawClass(valueTypeFull);
 		omitZero = method.isAnnotationPresent(OmitZeroes.class);
 		if (omitZero && !XivApiObject.class.isAssignableFrom(valueType)) {
 			throw new IllegalArgumentException("@OmitZeroes only makes sense when dealing with a sheet object type");

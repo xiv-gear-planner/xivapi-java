@@ -6,22 +6,17 @@ import gg.xp.xivapi.annotations.XivApiSheet;
 import gg.xp.xivapi.annotations.XivApiTransientField;
 import gg.xp.xivapi.clienttypes.XivApiSchemaVersion;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
-import gg.xp.xivapi.mappers.QueryFieldsBuilder;
-import gg.xp.xivapi.mappers.QueryFieldType;
-import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.message.BasicNameValuePair;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public final class MappingUtils {
+
 	private MappingUtils() {
 	}
 
@@ -91,7 +86,7 @@ public final class MappingUtils {
 		while (type instanceof ParameterizedType pt) {
 			type = pt.getRawType();
 		}
-		if (type instanceof Class cls) {
+		if (type instanceof Class<?> cls) {
 			return cls;
 		}
 		else {
@@ -124,6 +119,28 @@ public final class MappingUtils {
 		return true;
 	}
 
+	public static int methodMapHashCode(Map<Method, Object> map) {
+		int out = 0;
+		for (var entry : map.entrySet()) {
+			Method key = entry.getKey();
+			Object value = entry.getValue();
+			int keyHash = key.hashCode();
+			int valueHash;
+			if (value == null) {
+				valueHash = 0;
+			}
+			else if (value.getClass().isArray()) {
+				valueHash = Arrays.hashCode((Object[]) value);
+			}
+			else {
+				valueHash = Objects.hashCode(value);
+			}
+			int combinedHash = keyHash ^ valueHash;
+			out += combinedHash;
+		}
+		return out;
+	}
+
 	// TODO: unit tests
 	public static boolean unknownValueEquals(Object left, Object right) {
 		if (left == null && right == null) {
@@ -132,8 +149,8 @@ public final class MappingUtils {
 		else if (left == null || right == null) {
 			return false;
 		}
+		// TODO: this cannot do primitive arrays. Not sure exactly how to support that.
 		else if (left.getClass().isArray() && right.getClass().isArray()) {
-			// TODO: can this handle a primitive array?
 			return Arrays.equals((Object[]) left, (Object[]) right);
 		}
 		else {
