@@ -54,6 +54,14 @@ jobs:
         id: get_version
         run: echo "RELEASE_VERSION=$(./gradlew -q printVersion)" >> $GITHUB_ENV
 
+      - name: Commit & Push changes
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: master
+          message: 'Publish'
+
+
       - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
@@ -74,4 +82,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: master
+          message: 'Re-add -SNAPSHOT suffix'
 
