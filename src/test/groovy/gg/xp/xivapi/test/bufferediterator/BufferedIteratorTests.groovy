@@ -71,6 +71,10 @@ class BufferedIteratorTests {
 
 		BufferedIterator<Integer> bi = new BufferedIterator<>(iter, 5)
 
+		// Give feeder time to initially fill
+		Thread.sleep(100)
+		Thread.yield()
+
 		inputs.forEach { it ->
 			if (!bi.hasNext()) {
 				Assertions.fail("Had no more elements")
@@ -79,7 +83,7 @@ class BufferedIteratorTests {
 			int next = bi.next()
 			Assertions.assertEquals(it, next)
 			// Give the feeder thread time to catch up and check the index again
-			Thread.sleep(250)
+			Thread.sleep(100)
 			Thread.yield()
 			Assertions.assertEquals(Math.min(10, it + 7), iter.index)
 		}
