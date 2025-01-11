@@ -43,7 +43,8 @@ jobs:
           passphrase: ${{ secrets.OSS_GPG_KEY_PASS }}
 
       - name: Test and publish package
-        run: ./gradlew -PenableSigning=true -PpublishGH=true -PpublishOSS=true publish
+        if: ${{ github.event.inputs.publish_gh == 'true' || github.event.inputs.publish_oss == 'true' }}
+        run: ./gradlew -PenableSigning=true -PpublishGH=${{ github.event.inputs.publish_gh }} -PpublishOSS=${{ github.event.inputs.publish_oss }} publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OSS_USER: ${{ secrets.OSS_USER }}
