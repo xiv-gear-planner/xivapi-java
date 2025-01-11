@@ -55,11 +55,15 @@ jobs:
         run: echo "RELEASE_VERSION=$(./gradlew -q printVersion)" >> $GITHUB_ENV
 
       - name: Commit & Push changes
-        uses: actions-js/push@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
-          message: 'Publish release'
+        run: |
+          git commit -am "Publish release ${{ env.RELEASE_VERSION }}"
+          git push
+
+#        uses: actions-js/push@master
+#        with:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#          branch: master
+#          message: 'Publish release'
 
 #      - name: Create GitHub Release
 #        uses: actions/create-release@v1
@@ -76,6 +80,7 @@ jobs:
       - name: Tag Version
         run: |
           REV=$(git rev-parse HEAD)
+          echo "Rev: ${REV}"
           echo "PUBLISH_HEAD=$REV" >> "$GITHUB_ENV"
 
       - name: Tag commit
@@ -102,9 +107,14 @@ jobs:
         run: ./gradlew bumpVersion
 
       - name: Commit & Push changes
-        uses: actions-js/push@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
-          message: 'Re-add -SNAPSHOT suffix'
-
+        run: |
+          git commit -am "Re-add -SNAPSHOT suffix"
+          git push
+#
+#      - name: Commit & Push changes
+#        uses: actions-js/push@master
+#        with:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#          branch: master
+#          message: 'Re-add -SNAPSHOT suffix'
+#
