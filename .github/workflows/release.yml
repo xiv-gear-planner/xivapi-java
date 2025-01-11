@@ -72,11 +72,18 @@ jobs:
 #            Release of version ${{ env.RELEASE_VERSION }}.
 #          draft: true
 #          prerelease: false
+
+      - name: Tag Version
+        run: |
+          REV=git rev-parse HEAD
+          echo "PUBLISH_HEAD=$REV" >> "$GITHUB_ENV"
+
       - name: Tag commit
         uses: tvdias/github-tagger@v0.0.1
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           tag: "${{ env.RELEASE_VERSION }}"
+          commit-sha: ${{ env.PUBLISH_HEAD }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
