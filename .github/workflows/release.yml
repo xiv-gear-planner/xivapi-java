@@ -75,7 +75,7 @@ jobs:
 
       - name: Tag Version
         run: |
-          REV=git rev-parse HEAD
+          REV=$(git rev-parse HEAD)
           echo "PUBLISH_HEAD=$REV" >> "$GITHUB_ENV"
 
       - name: Tag commit
