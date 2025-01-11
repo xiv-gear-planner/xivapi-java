@@ -84,7 +84,7 @@ jobs:
           REV=$(git rev-parse HEAD)
           echo "Rev: ${REV}"
           echo "PUBLISH_HEAD=$REV" >> "$GITHUB_ENV"
-          git tag -a "${{ env.RELEASE_VERSION }}"
+          git tag -a "${{ env.RELEASE_VERSION }}" -m "Release version ${{ env.RELEASE_VERSION }}"
           
 
 #      - name: Tag commit
