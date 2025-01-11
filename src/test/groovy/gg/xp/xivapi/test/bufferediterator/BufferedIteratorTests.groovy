@@ -79,7 +79,8 @@ class BufferedIteratorTests {
 			int next = bi.next()
 			Assertions.assertEquals(it, next)
 			// Give the feeder thread time to catch up and check the index again
-			Thread.sleep(100)
+			Thread.sleep(250)
+			Thread.yield()
 			Assertions.assertEquals(Math.min(10, it + 7), iter.index)
 		}
 
