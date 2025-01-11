@@ -1,6 +1,15 @@
 name: Publish release package to Maven Central and GH Packages
 on:
   workflow_dispatch:
+    inputs:
+      publish_gh:
+        description: 'Publish to GH Packages'
+        required: true
+        default: 'true'
+      publish_oss:
+        description: 'Publish to Sonatype'
+        required: true
+        default: 'true'
 
 jobs:
   publish:
@@ -34,7 +43,7 @@ jobs:
           passphrase: ${{ secrets.OSS_GPG_KEY_PASS }}
 
       - name: Test and publish package
-        run: ./gradlew -PenableSigning=true -PpublishGH=true -PpublishOSS=true test publish
+        run: ./gradlew -PenableSigning=true -PpublishGH=true -PpublishOSS=true publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OSS_USER: ${{ secrets.OSS_USER }}
@@ -43,15 +52,6 @@ jobs:
       - name: Get the current version
         id: get_version
         run: echo "RELEASE_VERSION=$(./gradlew -q printVersion)" >> $GITHUB_ENV
-
-      - name: Bump version to next patch and add -SNAPSHOT suffix
-        run: ./gradlew bumpVersion
-
-      - name: Commit & Push changes
-        uses: actions-js/push@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
@@ -64,3 +64,13 @@ jobs:
             Release of version ${{ env.RELEASE_VERSION }}.
           draft: true
           prerelease: false
+
+      - name: Bump version to next patch and add -SNAPSHOT suffix
+        run: ./gradlew bumpVersion
+
+      - name: Commit & Push changes
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: master
+
