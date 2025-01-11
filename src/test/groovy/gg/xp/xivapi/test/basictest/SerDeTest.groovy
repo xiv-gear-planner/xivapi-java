@@ -1,8 +1,8 @@
 package gg.xp.xivapi.test.basictest
 
 import gg.xp.xivapi.XivApiClient
+import gg.xp.xivapi.assets.ImageFormat
 import gg.xp.xivapi.clienttypes.XivApiSettings
-import gg.xp.xivapi.debug.DebugUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.junit.jupiter.api.Assertions
@@ -40,7 +40,7 @@ class SerDeTest {
 			}
 			log.info "$key: $value"
 		}
-		log.info "${DebugUtils.extractMethodValueMap(item)}"
+		log.info "${item.methodValueMap}"
 		SerDeTest.item = serializeAndDeserialize item
 	}
 
@@ -131,6 +131,16 @@ class SerDeTest {
 	}
 
 	@Test
+	void testIconAssetUrl() {
+		Assertions.assertEquals(new URI("https://beta.xivapi.com/api/1/asset/ui/icon/024000/024103_hr1.tex?format=png"), item.icon.assetPathHD.getURI(ImageFormat.PNG))
+	}
+
+	@Test
+	void testIconAssetUrlAsUri() {
+		Assertions.assertEquals(new URI("https://beta.xivapi.com/api/1/asset/ui/icon/024000/024103_hr1.tex?format=jpg"), item.icon.assetPathHDasURI)
+	}
+
+	@Test
 	void testIconSchemaVersion() {
 		Assertions.assertEquals(schemaVersion, item.icon.schemaVersion.fullVersionString())
 	}
@@ -161,6 +171,7 @@ class SerDeTest {
 		log.info("4")
 		item.hashCode()
 		Assertions.assertEquals(item, item)
+		Assertions.assertEquals(item.hashCode(), item.hashCode())
 		Assertions.assertFalse(item == null)
 	}
 
@@ -170,10 +181,12 @@ class SerDeTest {
 		Item sameItem = client.getById(Item, 44096)
 
 		Assertions.assertEquals(sameItem, item)
+		Assertions.assertEquals(sameItem.hashCode(), item.hashCode())
 
 		Item differentItem = client.getById(Item, 43333)
 
 		Assertions.assertNotEquals(differentItem, item)
+		Assertions.assertNotEquals(differentItem.hashCode(), item.hashCode())
 	}
 
 }

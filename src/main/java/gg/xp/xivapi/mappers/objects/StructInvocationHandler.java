@@ -25,7 +25,7 @@ public class StructInvocationHandler implements InvocationHandler, Serializable 
 	private static final Logger log = LoggerFactory.getLogger(StructInvocationHandler.class);
 
 	@Serial
-	private static final long serialVersionUID = -7240936731264081327L;
+	private static final long serialVersionUID = -7240936731264081326L;
 
 	private static final Method equalsMethod;
 	private static final Method hashCodeMethod;
@@ -66,7 +66,7 @@ public class StructInvocationHandler implements InvocationHandler, Serializable 
 			// Handle default java object methods
 			if (method.getDeclaringClass().equals(Object.class)) {
 				if (method.equals(hashCodeMethod)) {
-					return methodValueMap.hashCode();
+					return MappingUtils.methodMapHashCode(methodValueMap);
 				}
 				else if (method.equals(equalsMethod)) {
 					Object that = args[0];

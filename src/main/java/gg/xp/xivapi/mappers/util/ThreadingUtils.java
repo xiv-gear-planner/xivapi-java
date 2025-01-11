@@ -14,4 +14,19 @@ public final class ThreadingUtils {
 				.daemon(true)
 				.build();
 	}
+
+	/**
+	 * Try to start a virtual thread with the given runnable. If running on a Java version that does not support
+	 * virtual threads, start a platform thread instead.
+	 *
+	 * @param runnable The task to run
+	 */
+	public static void tryStartVirtualThread(final Runnable runnable) {
+		try {
+			Thread.startVirtualThread(runnable);
+		}
+		catch (Throwable e) {
+			new Thread(runnable).start();
+		}
+	}
 }

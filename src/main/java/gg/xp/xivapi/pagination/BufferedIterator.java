@@ -1,5 +1,6 @@
 package gg.xp.xivapi.pagination;
 
+import gg.xp.xivapi.mappers.util.ThreadingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,12 +20,12 @@ public class BufferedIterator<X> implements Iterator<X> {
 
 	public BufferedIterator(Iterator<X> iter, int bufferSize) {
 		this.bufferSize = bufferSize;
-		Thread.ofVirtual().start(() -> {
+		ThreadingUtils.tryStartVirtualThread(() -> {
 			try {
 				iter.forEachRemaining(this::add);
 			}
 			catch (Throwable t) {
-				log.error("BufferedIterator failed to read from %s".formatted(iter), t);
+				log.error("BufferedIterator failed to read from {}", iter, t);
 			}
 			finally {
 				done();

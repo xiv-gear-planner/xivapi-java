@@ -7,6 +7,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 // TODO: since these all resolve to strings anyway, they should be easy to unit test
+
+/**
+ * Collection of methods useful for constructing search filters.
+ */
 public final class SearchFilters {
 
 	private SearchFilters() {
@@ -73,6 +77,12 @@ public final class SearchFilters {
 		}
 	}
 
+	/**
+	 * Search filter from a verbatim string.
+	 *
+	 * @param filterValue The search string.
+	 * @return The search filter consisting of that literal string.
+	 */
 	public static SearchFilter of(String filterValue) {
 		return new SearchFilterImpl(filterValue);
 	}

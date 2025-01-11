@@ -12,7 +12,7 @@ public class XivApiMissingNodeException extends XivApiDeserializationException {
 	private final Type fieldType;
 	private final Method method;
 
-	private static final String formatMethodNullable(@Nullable Method method) {
+	private static String formatMethodNullable(@Nullable Method method) {
 		if (method == null) {
 			return "not specified";
 		}

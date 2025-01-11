@@ -2,7 +2,6 @@ package gg.xp.xivapi.test.basictest
 
 import gg.xp.xivapi.XivApiClient
 import gg.xp.xivapi.clienttypes.XivApiSettings
-import gg.xp.xivapi.debug.DebugUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.junit.jupiter.api.Assertions
@@ -39,7 +38,7 @@ class FoodItemTest {
 			}
 			log.info "$key: $value"
 		}
-		log.info "${DebugUtils.extractMethodValueMap(item)}"
+		log.info "${item.methodValueMap}"
 
 	}
 
@@ -167,11 +166,14 @@ class FoodItemTest {
 
 		Item sameItem = client.getById(Item, 44096)
 
+		new HashMap<>().hashCode()
 		Assertions.assertEquals(sameItem, item)
+		Assertions.assertEquals(sameItem.hashCode(), item.hashCode())
 
 		Item differentItem = client.getById(Item, 43333)
 
 		Assertions.assertNotEquals(differentItem, item)
+		Assertions.assertNotEquals(differentItem.hashCode(), item.hashCode())
 	}
 
 }

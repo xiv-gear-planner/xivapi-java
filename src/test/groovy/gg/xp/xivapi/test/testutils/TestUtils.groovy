@@ -1,5 +1,8 @@
 package gg.xp.xivapi.test.testutils
 
+import groovy.util.logging.Slf4j
+
+@Slf4j
 class TestUtils {
 	static <X> X serializeAndDeserialize(X obj) {
 		try (
@@ -17,7 +20,7 @@ class TestUtils {
 
 			// Deserialize the object from the byte array input stream
 			def deserializedObj = ois.readObject()
-			println "Object serialized and deserialized successfully"
+			log.info "Object serialized and deserialized successfully"
 			return deserializedObj as X
 		}
 	}

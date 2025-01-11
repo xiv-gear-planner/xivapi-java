@@ -29,7 +29,7 @@ public final class XivApiListPaginator<X extends XivApiObject> extends XivApiPag
 
 	@Override
 	protected URI getNextPageUri() {
-		X last = currentPage.values.getLast();
+		X last = currentPage.values.get(currentPage.values.size() - 1);
 		try {
 			return new URIBuilder(originalUri)
 					.setParameter("after", String.valueOf(last.getRowId()))

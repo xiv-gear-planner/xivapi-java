@@ -8,11 +8,9 @@ import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.AutoValueMapper;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.QueryFieldsBuilder;
-import gg.xp.xivapi.mappers.QueryFieldType;
 import gg.xp.xivapi.mappers.util.MappingUtils;
 
 import java.lang.reflect.Method;
-import java.util.List;
 
 public class NormalFieldMapper<X> implements FieldMapper<X> {
 	private final String fieldName;
