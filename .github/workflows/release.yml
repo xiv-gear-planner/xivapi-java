@@ -59,11 +59,23 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: master
-          message: 'Publish'
+          message: 'Publish release'
+
+#      - name: Create GitHub Release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ env.RELEASE_VERSION }}
+#          release_name: ${{ env.RELEASE_VERSION }}
+#          body: |
+#            Release of version ${{ env.RELEASE_VERSION }}.
+#          draft: true
+#          prerelease: false
 
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
+        uses: actions/gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -73,6 +85,7 @@ jobs:
             Release of version ${{ env.RELEASE_VERSION }}.
           draft: true
           prerelease: false
+          make_latest: true
 
       - name: Bump version to next patch and add -SNAPSHOT suffix
         run: ./gradlew bumpVersion
