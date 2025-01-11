@@ -56,6 +56,8 @@ jobs:
 
       - name: Commit & Push changes
         run: |
+          git config --global user.name "Github Actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git commit -am "Publish release ${{ env.RELEASE_VERSION }}"
           git push
 
@@ -82,13 +84,15 @@ jobs:
           REV=$(git rev-parse HEAD)
           echo "Rev: ${REV}"
           echo "PUBLISH_HEAD=$REV" >> "$GITHUB_ENV"
+          git tag -a "${{ env.RELEASE_VERSION }}"
+          
 
-      - name: Tag commit
-        uses: tvdias/github-tagger@v0.0.1
-        with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          tag: "${{ env.RELEASE_VERSION }}"
-          commit-sha: ${{ env.PUBLISH_HEAD }}
+#      - name: Tag commit
+#        uses: tvdias/github-tagger@v0.0.1
+#        with:
+#          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+#          tag: "${{ env.RELEASE_VERSION }}"
+#          commit-sha: ${{ env.PUBLISH_HEAD }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
