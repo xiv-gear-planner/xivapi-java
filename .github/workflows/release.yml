@@ -72,7 +72,11 @@ jobs:
 #            Release of version ${{ env.RELEASE_VERSION }}.
 #          draft: true
 #          prerelease: false
-
+      - name: Tag commit
+        uses: tvdias/github-tagger@v0.0.1
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          tag: "${{ env.RELEASE_VERSION }}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
