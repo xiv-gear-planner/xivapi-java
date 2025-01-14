@@ -47,7 +47,6 @@ public abstract sealed class XivApiPaginator<X extends XivApiObject> implements 
 	protected abstract URI getNextPageUri();
 
 	private void nextPage() {
-		// TODO: getLast requires 21+ - do we want to support older Java versions?
 		globalBaseIndex += currentPage.size();
 		URI newURI = getNextPageUri();
 
@@ -102,7 +101,7 @@ public abstract sealed class XivApiPaginator<X extends XivApiObject> implements 
 			Iterable<JsonNode> iter = rows::elements;
 			values = StreamSupport.stream(iter.spliterator(), false)
 					.map(node -> {
-						var context = new XivApiContext(node, client.getSettings(), sv, client);
+						var context = new XivApiContext(node, client.getSettings(), sv, client.getUrlResolver());
 						return mapper.getValue(node, context);
 					})
 					.toList();

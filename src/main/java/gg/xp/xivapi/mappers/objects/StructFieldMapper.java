@@ -70,7 +70,7 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 
 		final Map<Method, Object> methodValueMap = kaMapFactory.create();
 		methodValueMap.put(svMethod, context.schemaVersion());
-		methodValueMap.put(tsMethod, "%s(StructProxy)".formatted(objectType.getSimpleName()));
+		methodValueMap.put(tsMethod, "%s(StructProxy)".formatted(objectType.getSimpleName()).intern());
 		methodFieldMap.forEach((method, fieldMapper) -> {
 			Object value = fieldMapper.getValue(current, context);
 			methodValueMap.put(method, value);

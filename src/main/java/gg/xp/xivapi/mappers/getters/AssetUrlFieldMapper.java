@@ -6,11 +6,10 @@ import gg.xp.xivapi.annotations.XivApiAssetPath;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.QueryFieldsBuilder;
-import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.HashMap;
+import java.net.URL;
 
 public class AssetUrlFieldMapper<X> implements FieldMapper<X> {
 
@@ -33,6 +32,38 @@ public class AssetUrlFieldMapper<X> implements FieldMapper<X> {
 		try {
 			String raw = current.textValue();
 			URI out = context.urlResolver().getAssetUri(raw, format);
+			// Possible future improvement - intern pieces of the URI
+//			if (returnType.equals(URI.class)) {
+//				String scheme = out.getScheme();
+//				String userInfo = out.getUserInfo();
+//				String host = out.getHost();
+//				String query = out.getQuery();
+//
+//				if (scheme != null) {
+//					scheme = scheme.intern();
+//				}
+//				if (userInfo != null) {
+//					userInfo = userInfo.intern();
+//				}
+//				if (host != null) {
+//					host = host.intern();
+//				}
+//				if (query != null) {
+//					query = query.intern();
+//				}
+//
+//				// Rebuild the URI with interned components
+//				URI newOut = new URI(
+//						scheme,
+//						userInfo,
+//						host,
+//						out.getPort(),
+//						out.getPath(),
+//						query,
+//						out.getFragment()
+//				);
+//				return (X) newOut;
+//			}
 			return mapper.convertValue(out, returnType);
 		}
 		catch (Throwable t) {

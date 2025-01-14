@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -144,17 +145,21 @@ public class StructInvocationHandler implements InvocationHandler, Serializable 
 		}
 	}
 
-	public static class MethodMetadata implements Serializable {
+	public static final class MethodMetadata implements Serializable {
+		@Serial
 		private static final long serialVersionUID = 1L;
 
 		private final String methodName;
 		private final String[] parameterTypeNames;
 		private final String interfaceClassName;
 
-		public MethodMetadata(String methodName, String[] parameterTypeNames, String interfaceClassName) {
-			this.methodName = methodName;
+		private MethodMetadata(String methodName, String[] parameterTypeNames, String interfaceClassName) {
+			this.methodName = methodName.intern();
+			for (int i = 0; i < parameterTypeNames.length; i++) {
+				parameterTypeNames[i] = parameterTypeNames[i].intern();
+			}
 			this.parameterTypeNames = parameterTypeNames;
-			this.interfaceClassName = interfaceClassName;
+			this.interfaceClassName = interfaceClassName.intern();
 		}
 
 		public static MethodMetadata fromMethod(Method method) {

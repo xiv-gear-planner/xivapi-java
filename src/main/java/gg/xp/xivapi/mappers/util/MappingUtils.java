@@ -141,7 +141,6 @@ public final class MappingUtils {
 		return out;
 	}
 
-	// TODO: unit tests
 	public static boolean unknownValueEquals(Object left, Object right) {
 		if (left == null && right == null) {
 			return true;

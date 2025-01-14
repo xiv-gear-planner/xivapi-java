@@ -26,8 +26,6 @@ public interface Icon extends XivApiStruct {
 	@XivApiAssetPath(format = "jpg")
 	URI getAssetPathHDasURI();
 
-
-	// TODO: this should move, otherwise it won't be possible to change the base url
 	default URI getPngIconUrl() {
 		try {
 			return new URI("https://beta.xivapi.com/api/1/asset/" + getPath() + "?format=png");

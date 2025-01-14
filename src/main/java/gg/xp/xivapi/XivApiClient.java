@@ -45,7 +45,7 @@ import java.util.function.Consumer;
 /**
  * The main xivapi client class.
  */
-public class XivApiClient implements AutoCloseable, XivApiUrlResolver {
+public class XivApiClient implements AutoCloseable {
 	private static final Logger log = LoggerFactory.getLogger(XivApiClient.class);
 
 	private static final ExecutorService exs = Executors.newCachedThreadPool(
@@ -321,6 +321,10 @@ public class XivApiClient implements AutoCloseable, XivApiUrlResolver {
 
 	public <X extends XivApiObject> void validateModel(Class<X> clazz) {
 		getMapping(clazz);
+	}
+
+	public XivApiUrlResolver getUrlResolver() {
+		return urlResolver;
 	}
 
 	/**

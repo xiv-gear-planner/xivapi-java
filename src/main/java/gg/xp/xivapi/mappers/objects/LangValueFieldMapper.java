@@ -63,7 +63,7 @@ public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> 
 		fieldsNode.fields().forEachRemaining(entry -> {
 			Matcher matcher = fieldMatcher.matcher(entry.getKey());
 			if (matcher.matches()) {
-				String lang = matcher.group(1);
+				String lang = matcher.group(1).intern();
 				X value = innerMapper.getValue(entry.getValue(), context);
 				out.put(lang, value);
 			}
