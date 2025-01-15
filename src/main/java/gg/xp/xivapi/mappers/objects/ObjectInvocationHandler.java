@@ -74,12 +74,12 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 						return true;
 					}
 					else if (that instanceof XivApiObject other) {
-						var otherValueMap = other.getMethodValueMap();
-						return MappingUtils.methodMapEquals(methodValueMap, otherValueMap);
+						if (Arrays.equals(proxy.getClass().getGenericInterfaces(), other.getClass().getGenericInterfaces())) {
+							var otherValueMap = other.getMethodValueMap();
+							return MappingUtils.methodMapEquals(methodValueMap, otherValueMap);
+						}
 					}
-					else {
-						return false;
-					}
+					return false;
 				}
 			}
 

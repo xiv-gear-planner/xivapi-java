@@ -10,6 +10,7 @@ import gg.xp.xivapi.clienttypes.XivApiSettings;
 import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
 import gg.xp.xivapi.filters.SearchFilter;
+import gg.xp.xivapi.impl.DedupeCacheImpl;
 import gg.xp.xivapi.impl.UrlResolverImpl;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.objects.ObjectFieldMapper;
@@ -210,7 +211,8 @@ public class XivApiClient implements AutoCloseable {
 
 		XivApiSchemaVersion sv = MappingUtils.makeSchemaVersion(root.get("schema").textValue());
 
-		XivApiContext context = new XivApiContext(root, settings, sv, urlResolver);
+		var cache = new DedupeCacheImpl();
+		XivApiContext context = new XivApiContext(root, settings, sv, urlResolver, cache);
 
 		return mapping.getWrappedMapper().getValue(root, context);
 	}
@@ -262,7 +264,7 @@ public class XivApiClient implements AutoCloseable {
 
 		JsonNode firstPage = sendGET(firstPageUri);
 
-		return new XivApiListPaginator<>(this, firstPage, firstPageUri, options::shouldStop, mapping.getWrappedMapper(), 100);
+		return new XivApiListPaginator<>(this, firstPage, firstPageUri, options::shouldStop, mapping.getWrappedMapper(), 100, options.getListCacheMode());
 	}
 
 	public <X extends XivApiObject> XivApiPaginator<X> getSearchIterator(Class<X> cls, SearchFilter filter) {
@@ -298,7 +300,7 @@ public class XivApiClient implements AutoCloseable {
 
 		JsonNode firstPage = sendGET(firstPageUri);
 
-		return new XivApiSearchPaginator<>(this, firstPage, firstPageUri, options::shouldStop, mapping.getWrappedMapper(), 100);
+		return new XivApiSearchPaginator<>(this, firstPage, firstPageUri, options::shouldStop, mapping.getWrappedMapper(), 100, options.getListCacheMode());
 	}
 
 	/**

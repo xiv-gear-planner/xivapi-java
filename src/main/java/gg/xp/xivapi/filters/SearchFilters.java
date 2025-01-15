@@ -39,7 +39,14 @@ public final class SearchFilters {
 		public String toFilterString() {
 			return filters.stream()
 					.map(SearchFilter::toFilterString)
-					.map(s -> "+" + s)
+					.map(s -> {
+						// For negative filters, we must not add a +.
+						// i.e. "+Foo=GoodValue -Bar=BadValue" is correct, but "+Foo=GoodValue +-Bar=BadValue" is not.
+						if (s.startsWith("-")) {
+							return s;
+						}
+						return "+" + s;
+					})
 					.collect(Collectors.joining(" "));
 		}
 
@@ -55,7 +62,11 @@ public final class SearchFilters {
 
 		@Override
 		public String toFilterString() {
-			return "-" + filter.toFilterString();
+			String inner = filter.toFilterString();
+			if (inner.startsWith("-") || inner.startsWith("+")) {
+				return "-(" + inner + ")";
+			}
+			return "-" + inner;
 		}
 
 		@Override

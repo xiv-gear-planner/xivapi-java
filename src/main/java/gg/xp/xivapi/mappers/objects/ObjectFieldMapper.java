@@ -184,8 +184,12 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 		boolean strict = context.settings().isStrict();
 
-		//noinspection unchecked
-		return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, new ObjectInvocationHandler(methodValueMap, strict));
+		// It is not necessary to use the `strict` flag as part of the cache key, as both the strict flag and the cache
+		// itself are both scoped to the context object.
+		return context.cache().computeIfAbsent(objectType, methodValueMap, map -> {
+			//noinspection unchecked
+			return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, new ObjectInvocationHandler(map, strict));
+		});
 
 	}
 
