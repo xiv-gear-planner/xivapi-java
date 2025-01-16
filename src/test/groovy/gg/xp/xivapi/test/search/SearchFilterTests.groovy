@@ -68,8 +68,48 @@ class SearchFilterTests {
 	}
 
 	@Test
+	void testAndAutoFlatten1() {
+		var filter = and(
+				and(
+						and(
+								eq('Foo', 5)
+						),
+						and(
+								not(
+										and(
+												eq('Bar', 'Baz')
+										)
+								)
+						)
+				)
+		)
+		assertEquals '+Foo=5 -Bar="Baz"', filter.toFilterString()
+	}
+
+	@Test
+	void testAndAutoFlatten2() {
+		var filterPart1 = and(eq('Foo', 5), not(eq('Bar', 'Baz')))
+		var filterPart2 = and(eq('Foo2', 5), not(eq('Bar2', 'Baz')))
+		var filter = and([filterPart1, filterPart2])
+		assertEquals '+Foo=5 -Bar="Baz" +Foo2=5 -Bar2="Baz"', filter.toFilterString()
+	}
+
+	@Test
+	void testOrAutoFlatten1() {
+		var filter = or(or(or(eq('Foo', 5)), or(not(or(eq('Bar', 'Baz'))))))
+		assertEquals 'Foo=5 (-Bar="Baz")', filter.toFilterString()
+	}
+
+	@Test
+	void testOrAutoFlatten2() {
+		var filterPart1 = or(eq('Foo', 5), not(eq('Bar', 'Baz')))
+		var filterPart2 = or(eq('Foo2', 5), not(eq('Bar2', 'Baz')))
+		var filter = or([filterPart1, filterPart2])
+		assertEquals 'Foo=5 (-Bar="Baz") Foo2=5 (-Bar2="Baz")', filter.toFilterString()
+	}
+
+	@Test
 	void testOr() {
-		// TODO add docs about or + not
 		var filter = or(eq('Foo', 5), not(eq('Bar', 'Baz')))
 		assertEquals 'Foo=5 (-Bar="Baz")', filter.toFilterString()
 	}
@@ -77,7 +117,8 @@ class SearchFilterTests {
 	@Test
 	void testAndOuterNot() {
 		var filter = not(and(eq('Foo', 5), not(eq('Bar', 'Baz'))))
-		assertEquals '-(+Foo=5 -(Bar="Baz"))', filter.toFilterString()
+		// TODO: perhaps it would be possible to optimize this into `-Foo=5 Bar="Baz"` ?
+		assertEquals '-(+Foo=5 -Bar="Baz")', filter.toFilterString()
 	}
 
 	@Test
@@ -115,5 +156,35 @@ class SearchFilterTests {
 		var filter = eq(any('Foo'), 5)
 		// TODO: specific index
 		assertEquals 'Foo[]=5', filter.toFilterString()
+	}
+
+	@Test
+	void testNotFlatten1() {
+		var filter = not(not(eq('Foo', 5)))
+		assertEquals 'Foo=5', filter.toFilterString()
+	}
+
+	@Test
+	void testNotFlatten2() {
+		var filter = not(not(and(eq('Foo', 5), not(eq('Bar', "Baz")))))
+		assertEquals '+Foo=5 -Bar="Baz"', filter.toFilterString()
+	}
+
+	@Test
+	void testNotFlatten3() {
+		var filter = not(not(and(not(eq('Bar', "Baz")), eq('Foo', 5))))
+		assertEquals '-Bar="Baz" +Foo=5', filter.toFilterString()
+	}
+
+	@Test
+	void testNotFlatten4() {
+		var filter = not(not(not(and(eq('Foo', 5), not(eq('Bar', "Baz"))))))
+		assertEquals '-(+Foo=5 -Bar="Baz")', filter.toFilterString()
+	}
+
+	@Test
+	void testNotFlatten5() {
+		var filter = not(not(not(and(not(eq('Bar', "Baz")), eq('Foo', 5)))))
+		assertEquals '-(-Bar="Baz" +Foo=5)', filter.toFilterString()
 	}
 }
