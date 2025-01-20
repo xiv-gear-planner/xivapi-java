@@ -1,5 +1,6 @@
 package gg.xp.xivapi.mappers.objects;
 
+import gg.xp.xivapi.annotations.EmptyStringNull;
 import gg.xp.xivapi.annotations.NullIfZero;
 import gg.xp.xivapi.clienttypes.XivApiBase;
 import gg.xp.xivapi.clienttypes.XivApiObject;
@@ -98,7 +99,10 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 			}
 			else {
 				if (!(method.isAnnotationPresent(NullIfZero.class)
-				      || returnType.isAnnotationPresent(NullIfZero.class))) {
+				      || returnType.isAnnotationPresent(NullIfZero.class)
+				      || (returnType.equals(String.class)
+				          && (method.isAnnotationPresent(EmptyStringNull.class)
+				              || method.getAnnotatedReturnType().isAnnotationPresent(EmptyStringNull.class))))) {
 					if (strict) {
 						throw new XivApiDeserializationException("Null object field! %s".formatted(method));
 					}

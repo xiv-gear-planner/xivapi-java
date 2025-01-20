@@ -98,6 +98,11 @@ public interface Item extends XivApiObject {
 }
 ```
 
+All such objects and structs extend `java.io.Serializable`, so you can directly use normal Java serialization to efficiently transfer
+or store them. However, the burden is on the library consumer to manage version compatibility. One way of doing this is to store data
+in a wrapper object, and bump the `serialVersionUID`. In addition, there is no guarantee that objects serialized by one version of the
+library will be compatible with 
+
 ### Query Single Row by ID
 
 Then, to query for a specific row, simply use getById(class, id):

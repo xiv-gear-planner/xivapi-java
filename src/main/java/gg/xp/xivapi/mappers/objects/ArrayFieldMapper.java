@@ -39,14 +39,14 @@ public class ArrayFieldMapper<X> implements FieldMapper<X[]> {
 			throw new IllegalArgumentException("Type must be an array, not %s".formatted(cls));
 		}
 		// TODO: this doesn't support generic types
-		Class<?> listTypeAsCls = cls.componentType();
-		this.componentType = (Class<X>) listTypeAsCls;
+		Class<?> elementTypeAsCls = cls.componentType();
+		this.componentType = (Class<X>) elementTypeAsCls;
 		omitZero = method.isAnnotationPresent(OmitZeroes.class);
-		if (omitZero && !XivApiObject.class.isAssignableFrom(listTypeAsCls)) {
+		if (omitZero && !XivApiObject.class.isAssignableFrom(elementTypeAsCls)) {
 			throw new IllegalArgumentException("@OmitZeroes only makes sense when dealing with a sheet object type");
 		}
 		//noinspection unchecked
-		this.innerMapper = new AutoValueMapper<>((Class<X>) listTypeAsCls, method, listTypeAsCls, mapper);
+		this.innerMapper = new AutoValueMapper<>((Class<X>) elementTypeAsCls, method, elementTypeAsCls, mapper);
 	}
 
 	@SuppressWarnings("unchecked")
