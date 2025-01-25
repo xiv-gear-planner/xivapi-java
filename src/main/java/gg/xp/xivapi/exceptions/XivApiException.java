@@ -1,5 +1,8 @@
 package gg.xp.xivapi.exceptions;
 
+/**
+ * Top-level exception for XivApi-related errors.
+ */
 public class XivApiException extends RuntimeException {
 	public XivApiException() {
 	}

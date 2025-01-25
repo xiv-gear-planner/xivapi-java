@@ -5,6 +5,9 @@ import gg.xp.xivapi.XivApiClient;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.clienttypes.XivApiSchemaVersion;
 import gg.xp.xivapi.exceptions.XivApiDeserializationException;
+import gg.xp.xivapi.impl.DedupeCache;
+import gg.xp.xivapi.impl.DedupeCacheImpl;
+import gg.xp.xivapi.impl.NoopDedupeCache;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.util.MappingUtils;
@@ -31,23 +34,32 @@ public abstract sealed class XivApiPaginator<X extends XivApiObject> implements 
 	private final BiPredicate<Integer, X> stopCondition;
 	private final FieldMapper<X> mapper;
 	protected final int perPageItemCount;
+	private final ListCacheMode cacheMode;
+	private final DedupeCache cache;
 	protected XivApiPage currentPage;
 	private int globalBaseIndex;
 	private boolean hasHitStopCondition;
 
-	XivApiPaginator(XivApiClient client, URI originalUri, BiPredicate<Integer, X> stopCondition, FieldMapper<X> mapper, int perPageItemCount, JsonNode firstResponse) {
+	XivApiPaginator(XivApiClient client, URI originalUri, BiPredicate<Integer, X> stopCondition, FieldMapper<X> mapper, int perPageItemCount, JsonNode firstResponse, ListCacheMode cacheMode) {
 		this.client = client;
 		this.originalUri = originalUri;
 		this.stopCondition = stopCondition;
 		this.mapper = mapper;
 		this.perPageItemCount = perPageItemCount;
+		this.cacheMode = cacheMode;
+		switch (cacheMode) {
+			case None -> cache = NoopDedupeCache.INSTANCE;
+			case PerItem, PerPage -> cache = null;
+			case WholeQuery -> cache = new DedupeCacheImpl();
+			default -> throw new IllegalArgumentException("Unknown cache mode " + cacheMode);
+		}
+		// Must be called last as it reads instance fields!
 		currentPage = new XivApiPage(firstResponse);
 	}
 
 	protected abstract URI getNextPageUri();
 
 	private void nextPage() {
-		// TODO: getLast requires 21+ - do we want to support older Java versions?
 		globalBaseIndex += currentPage.size();
 		URI newURI = getNextPageUri();
 
@@ -100,9 +112,11 @@ public abstract sealed class XivApiPaginator<X extends XivApiObject> implements 
 			}
 			XivApiSchemaVersion sv = MappingUtils.makeSchemaVersion(root.get("schema").textValue());
 			Iterable<JsonNode> iter = rows::elements;
+			DedupeCache pageCache = cache == null && cacheMode == ListCacheMode.PerPage ? new DedupeCacheImpl() : cache;
 			values = StreamSupport.stream(iter.spliterator(), false)
 					.map(node -> {
-						var context = new XivApiContext(node, client.getSettings(), sv, client);
+						DedupeCache itemCache = pageCache == null && cacheMode == ListCacheMode.PerItem ? new DedupeCacheImpl() : cache;
+						var context = new XivApiContext(node, client.getSettings(), sv, client.getUrlResolver(), itemCache);
 						return mapper.getValue(node, context);
 					})
 					.toList();

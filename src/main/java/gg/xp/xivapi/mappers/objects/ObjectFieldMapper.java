@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -167,6 +168,8 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			methodValueMap.put(pkMethod, primaryKey);
 			methodValueMap.put(ridMethod, rowId);
 			methodValueMap.put(svMethod, context.schemaVersion());
+			// TODO: this would work better as some kind of lazy value, as it is not ideal to have to intern every
+			// single instance of these to save memory.
 			methodValueMap.put(tsMethod, "%s(%s)".formatted(objectType.getSimpleName(), rowId));
 			// Go through the method -> field map, deserialize each field into its respective type, and then
 			// assemble a method -> value map.
@@ -181,8 +184,12 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
 		boolean strict = context.settings().isStrict();
 
-		//noinspection unchecked
-		return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, new ObjectInvocationHandler(methodValueMap, strict));
+		// It is not necessary to use the `strict` flag as part of the cache key, as both the strict flag and the cache
+		// itself are both scoped to the context object.
+		return context.cache().computeIfAbsent(objectType, methodValueMap, map -> {
+			//noinspection unchecked
+			return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, new ObjectInvocationHandler(map, strict));
+		});
 
 	}
 

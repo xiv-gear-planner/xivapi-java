@@ -48,7 +48,7 @@ public final class MappingUtils {
 			fieldName = method.getName().substring(2);
 		}
 		else {
-			throw new RuntimeException("I don't know how to map " + method.getName());
+			throw new IllegalArgumentException("I don't know how to map field name '" + method.getName() + "' to a field");
 		}
 		return fieldName;
 	}
@@ -141,7 +141,6 @@ public final class MappingUtils {
 		return out;
 	}
 
-	// TODO: unit tests
 	public static boolean unknownValueEquals(Object left, Object right) {
 		if (left == null && right == null) {
 			return true;

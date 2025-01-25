@@ -13,8 +13,6 @@ import java.util.List;
 // Indicate what sheet should be queried
 @XivApiSheet("Item")
 public interface Item extends XivApiObject, HasIcon {
-	// TODO: arrays
-	// TODO: schema version
 
 	// ID will always be auto-filled, but this is declared on XivApiObject so no need to do it here
 //	int getId()

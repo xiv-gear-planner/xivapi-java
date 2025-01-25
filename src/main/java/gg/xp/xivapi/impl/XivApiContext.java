@@ -8,5 +8,5 @@ import gg.xp.xivapi.url.XivApiUrlResolver;
 /**
  * Top-level deserialization context
  */
-public record XivApiContext(JsonNode rootNode, XivApiSettings settings, XivApiSchemaVersion schemaVersion, XivApiUrlResolver urlResolver) {
+public record XivApiContext(JsonNode rootNode, XivApiSettings settings, XivApiSchemaVersion schemaVersion, XivApiUrlResolver urlResolver, DedupeCache cache) {
 }

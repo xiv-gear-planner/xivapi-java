@@ -1,5 +1,8 @@
 package gg.xp.xivapi.exceptions;
 
+/**
+ * Exception for when we are not able to create our tree of node mappers.
+ */
 public class XivApiMappingException extends XivApiException {
 	public XivApiMappingException() {
 	}

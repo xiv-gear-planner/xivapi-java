@@ -35,9 +35,14 @@ dependencies {
 </dependency>
 ```
 
-## Example
+## Examples
 
-This example is used in the test suite.
+For more examples, you can consult the [tests](src/test/groovy/gg/xp/xivapi/test).
+You can also take a look at the [xivgear.app data API](https://github.com/xiv-gear-planner/xivgear-data-api)
+as an example of real-world usage. Note that both of these are written in Groovy, however, the API client itself
+is written in pure Java and does not have any Groovy dependencies. The only difference when using Groovy is that
+you should still write your interfaces in Java, as there are some subtle differences, such as how default
+methods work internally.
 
 ### Data Model
 
@@ -97,6 +102,11 @@ public interface Item extends XivApiObject {
 
 }
 ```
+
+All such objects and structs extend `java.io.Serializable`, so you can directly use normal Java serialization to efficiently transfer
+or store them. However, the burden is on the library consumer to manage version compatibility. One way of doing this is to store data
+in a wrapper object, and bump the `serialVersionUID`. In addition, there is no guarantee that objects serialized by one version of the
+library will be compatible with 
 
 ### Query Single Row by ID
 
@@ -192,10 +202,6 @@ public interface Item extends XivApiObject {
 
 ## Examples
 
-For more examples, you can consult the [tests](src/test/groovy/gg/xp/xivapi/test).
-You can also take a look at the [xivgear.app data API](https://github.com/xiv-gear-planner/xivgear-data-api)
-as an example of real-world usage. Note that both of these are written in Groovy, however, the API client itself
-is written in pure Java and does not have any Groovy dependencies.
 
 ## Status
 

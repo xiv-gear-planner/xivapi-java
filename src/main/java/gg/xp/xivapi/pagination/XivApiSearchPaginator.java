@@ -23,8 +23,8 @@ import java.util.function.BiPredicate;
  */
 public final class XivApiSearchPaginator<X extends XivApiObject> extends XivApiPaginator<X> {
 
-	public XivApiSearchPaginator(XivApiClient client, JsonNode firstResponse, URI originalUri, BiPredicate<Integer, X> stopCondition, FieldMapper<X> mapper, int perPageItemCount) {
-		super(client, originalUri, stopCondition, mapper, perPageItemCount, firstResponse);
+	public XivApiSearchPaginator(XivApiClient client, JsonNode firstResponse, URI originalUri, BiPredicate<Integer, X> stopCondition, FieldMapper<X> mapper, int perPageItemCount, ListCacheMode cacheMode) {
+		super(client, originalUri, stopCondition, mapper, perPageItemCount, firstResponse, cacheMode);
 	}
 
 	@Override

@@ -10,5 +10,8 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface XivApiMapKeys {
+	/**
+	 * @return Which keys to include as a regex
+	 */
 	@RegExp String value();
 }

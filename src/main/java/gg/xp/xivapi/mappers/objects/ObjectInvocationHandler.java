@@ -1,5 +1,6 @@
 package gg.xp.xivapi.mappers.objects;
 
+import gg.xp.xivapi.annotations.EmptyStringNull;
 import gg.xp.xivapi.annotations.NullIfZero;
 import gg.xp.xivapi.clienttypes.XivApiBase;
 import gg.xp.xivapi.clienttypes.XivApiObject;
@@ -74,12 +75,12 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 						return true;
 					}
 					else if (that instanceof XivApiObject other) {
-						var otherValueMap = other.getMethodValueMap();
-						return MappingUtils.methodMapEquals(methodValueMap, otherValueMap);
+						if (Arrays.equals(proxy.getClass().getGenericInterfaces(), other.getClass().getGenericInterfaces())) {
+							var otherValueMap = other.getMethodValueMap();
+							return MappingUtils.methodMapEquals(methodValueMap, otherValueMap);
+						}
 					}
-					else {
-						return false;
-					}
+					return false;
 				}
 			}
 
@@ -98,7 +99,10 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 			}
 			else {
 				if (!(method.isAnnotationPresent(NullIfZero.class)
-				      || returnType.isAnnotationPresent(NullIfZero.class))) {
+				      || returnType.isAnnotationPresent(NullIfZero.class)
+				      || (returnType.equals(String.class)
+				          && (method.isAnnotationPresent(EmptyStringNull.class)
+				              || method.getAnnotatedReturnType().isAnnotationPresent(EmptyStringNull.class))))) {
 					if (strict) {
 						throw new XivApiDeserializationException("Null object field! %s".formatted(method));
 					}
@@ -144,7 +148,9 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 		}
 	}
 
-	public static class MethodMetadata implements Serializable {
+	// TODO: this should be de-duplicated with the equivalent in StructInvocationHandler, but that would break
+	// serialization compatibility, so hold off for now.
+	public static final class MethodMetadata implements Serializable {
 		@Serial
 		private static final long serialVersionUID = 1L;
 
@@ -152,10 +158,13 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 		private final String[] parameterTypeNames;
 		private final String interfaceClassName;
 
-		public MethodMetadata(String methodName, String[] parameterTypeNames, String interfaceClassName) {
-			this.methodName = methodName;
+		private MethodMetadata(String methodName, String[] parameterTypeNames, String interfaceClassName) {
+			this.methodName = methodName.intern();
+			for (int i = 0; i < parameterTypeNames.length; i++) {
+				parameterTypeNames[i] = parameterTypeNames[i].intern();
+			}
 			this.parameterTypeNames = parameterTypeNames;
-			this.interfaceClassName = interfaceClassName;
+			this.interfaceClassName = interfaceClassName.intern();
 		}
 
 		public static MethodMetadata fromMethod(Method method) {

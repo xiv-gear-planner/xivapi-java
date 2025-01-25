@@ -6,6 +6,10 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
+/**
+ * Specific exception for when we are trying to deserialize something and an expected node is completely missing from
+ * the response.
+ */
 public class XivApiMissingNodeException extends XivApiDeserializationException {
 	private final String messageBase;
 	private final JsonNode node;

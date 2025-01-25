@@ -20,9 +20,30 @@ public final class SearchFilters {
 
 		@Override
 		public String toFilterString() {
+			if (filters.size() == 1) {
+				return filters.get(0).toFilterString();
+			}
 			return filters.stream()
-					.map(SearchFilter::toFilterString)
-					.collect(Collectors.joining(" ", "(", ")"));
+					// First, auto-flatten nested ORs
+					.flatMap(child -> {
+						if (child instanceof SearchFilterOr orChild) {
+							return orChild.filters().stream();
+						}
+						return Stream.of(child);
+					})
+					.map(searchFilter -> {
+						String inner = searchFilter.toFilterStringWrapped();
+						if (inner.startsWith("-")) {
+							return "(" + inner + ")";
+						}
+						return inner;
+					})
+					.collect(Collectors.joining(" "));
+		}
+
+		@Override
+		public String toFilterStringWrapped() {
+			return "(" + toFilterString() + ")";
 		}
 
 		@Override
@@ -37,9 +58,34 @@ public final class SearchFilters {
 
 		@Override
 		public String toFilterString() {
+			if (filters.size() == 1) {
+				return filters.get(0).toFilterString();
+			}
 			return filters.stream()
-					.map(SearchFilter::toFilterString)
-					.map(s -> "+" + s)
+					// First, auto-flatten nested ANDs
+					.flatMap(child -> {
+						if (child instanceof SearchFilterAnd andChild) {
+							return andChild.filters().stream();
+						}
+						return Stream.of(child);
+					})
+					// Use the "wrapped" version, e.g. if I have a nested OR, it needs to have parenthesis around it
+					.map(searchFilter -> {
+						// Don't re-wrap NOTs. e.g. A && !B should become +A -B, not +A +(-B). The latter will work
+						// but is inefficient.
+						if (searchFilter instanceof SearchFilterNot notChild) {
+							return notChild.toFilterString();
+						}
+						return searchFilter.toFilterStringWrapped();
+					})
+					.map(s -> {
+						// For negative filters, we must not add a +.
+						// i.e. "+Foo=GoodValue -Bar=BadValue" is correct, but "+Foo=GoodValue +-Bar=BadValue" is not.
+						if (s.startsWith("-")) {
+							return s;
+						}
+						return "+" + s;
+					})
 					.collect(Collectors.joining(" "));
 		}
 
@@ -55,7 +101,14 @@ public final class SearchFilters {
 
 		@Override
 		public String toFilterString() {
-			return "-" + filter.toFilterString();
+			if (filter instanceof SearchFilterNot notChild) {
+				return notChild.filter.toFilterString();
+			}
+			String inner = filter.toFilterString();
+			if (inner.startsWith("-") || inner.startsWith("+")) {
+				return "-(" + inner + ")";
+			}
+			return "-" + inner;
 		}
 
 		@Override

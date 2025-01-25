@@ -7,6 +7,7 @@ import gg.xp.xivapi.clienttypes.XivApiObject;
 
 import java.util.Map;
 
+
 @XivApiSheet("ClassJobCategory")
 public interface ClassJobCategory extends XivApiObject {
 	String getName();

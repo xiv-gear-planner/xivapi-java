@@ -39,7 +39,7 @@ public class KeyedAlikeMap<K, V> implements Map<K, V> {
 	private final Object[] valueMapping;
 	// Sentry value for elements which have explicitly been set to null.
 	// Unset values instead have a literal null.
-	private final Object NULL_MARKER = new Object();
+	private static final Object NULL_MARKER = new Object();
 
 	KeyedAlikeMap(Map<K, Integer> keyMapping) {
 		//noinspection AssignmentOrReturnOfFieldWithMutableType

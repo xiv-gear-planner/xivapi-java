@@ -1,5 +1,8 @@
 package gg.xp.xivapi.exceptions;
 
+/**
+ * General exception for when we are trying to deserialize a response and something goes wrong with that.
+ */
 public class XivApiDeserializationException extends XivApiException {
 	public XivApiDeserializationException() {
 	}
