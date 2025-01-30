@@ -322,7 +322,7 @@ public class XivApiClient implements AutoCloseable {
 	 */
 	public List<GameVersion> getGameVersionsFull() {
 		URI uri = buildUri(builder -> builder.appendPath("version"));
-		JsonNode result = sendGET(uri);
+		JsonNode result = sendGET(uri).get("versions");
 		return mapper.convertValue(result, new TypeReference<>() {
 		});
 	}
