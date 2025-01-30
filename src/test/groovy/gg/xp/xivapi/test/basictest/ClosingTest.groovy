@@ -3,14 +3,16 @@ package gg.xp.xivapi.test.basictest
 import gg.xp.xivapi.XivApiClient
 import gg.xp.xivapi.clienttypes.XivApiSettings
 import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-// Allows access to private rootMappingCache field
-@CompileDynamic
+@CompileStatic
 class ClosingTest {
 	private static final String schemaVersion = "exdschema@5f292f39f3deab2c43bee62b202b54ebf51e15b7-2024.08.02.0000.0000"
 
+	// Allows access to private rootMappingCache field
+	@CompileDynamic
 	@Test
 	void closeTest() {
 		var client = new XivApiClient({ XivApiSettings.Builder it ->
