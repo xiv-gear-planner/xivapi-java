@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.assets.AssetFormat;
+import gg.xp.xivapi.clienttypes.GameVersion;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.clienttypes.XivApiSchemaVersion;
 import gg.xp.xivapi.clienttypes.XivApiSettings;
@@ -304,9 +305,22 @@ public class XivApiClient implements AutoCloseable {
 	}
 
 	/**
-	 * @return The list of available game versions.
+	 * @return The list of available game versions, but flattened.
+	 *
+	 * @see #getGameVersionsFull()
 	 */
 	public List<String> getGameVersions() {
+		return getGameVersionsFull()
+				.stream()
+				.flatMap(gv -> gv.names().stream())
+				.toList();
+	}
+
+	/**
+	 * @return The list of available game versions, in the original form that the API's /api/1/version endpoint
+	 * returns.
+	 */
+	public List<GameVersion> getGameVersionsFull() {
 		URI uri = buildUri(builder -> builder.appendPath("version"));
 		JsonNode result = sendGET(uri);
 		return mapper.convertValue(result, new TypeReference<>() {
