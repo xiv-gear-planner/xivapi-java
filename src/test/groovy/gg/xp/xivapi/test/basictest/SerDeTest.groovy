@@ -127,17 +127,19 @@ class SerDeTest {
 
 	@Test
 	void testIconUrl() {
+		// Not updated to new url, this one is hardcoded in the supplied model (don't follow this as an example for your own model,
+		// there are real asset path types now)
 		Assertions.assertEquals(new URI("https://beta.xivapi.com/api/1/asset/ui/icon/024000/024103.tex?format=png"), item.icon.pngIconUrl)
 	}
 
 	@Test
 	void testIconAssetUrl() {
-		Assertions.assertEquals(new URI("https://beta.xivapi.com/api/1/asset/ui/icon/024000/024103_hr1.tex?format=png"), item.icon.assetPathHD.getURI(ImageFormat.PNG))
+		Assertions.assertEquals(new URI("https://v2.xivapi.com/api/asset/ui/icon/024000/024103_hr1.tex?format=png"), item.icon.assetPathHD.getURI(ImageFormat.PNG))
 	}
 
 	@Test
 	void testIconAssetUrlAsUri() {
-		Assertions.assertEquals(new URI("https://beta.xivapi.com/api/1/asset/ui/icon/024000/024103_hr1.tex?format=jpg"), item.icon.assetPathHDasURI)
+		Assertions.assertEquals(new URI("https://v2.xivapi.com/api/asset/ui/icon/024000/024103_hr1.tex?format=jpg"), item.icon.assetPathHDasURI)
 	}
 
 	@Test

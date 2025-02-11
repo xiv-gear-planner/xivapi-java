@@ -70,7 +70,7 @@ public final class XivApiSettings {
 
 		{
 			try {
-				baseUri = new URI("https://beta.xivapi.com/api/1");
+				baseUri = new URI("https://v2.xivapi.com/api");
 			}
 			catch (URISyntaxException e) {
 				throw new RuntimeException(e);
