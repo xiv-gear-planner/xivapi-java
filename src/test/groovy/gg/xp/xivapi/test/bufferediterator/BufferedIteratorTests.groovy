@@ -6,9 +6,11 @@ import groovy.transform.TupleConstructor
 import groovy.util.logging.Slf4j
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 
 import java.lang.ref.Cleaner
 import java.lang.ref.WeakReference
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 @CompileStatic
@@ -114,52 +116,24 @@ class BufferedIteratorTests {
 
 		// This is the last time we touch the BI
 		bi.next()
-		bi = null
 
 		return isCleaned
 	}
 
 	@Test
+	@Timeout(value = 5, unit = TimeUnit.SECONDS)
 	void testAbandonedIteratorIsCleanedUp() {
 		var cleaned = abandonedIteratorHelper()
 		// Give feeder time to initially fill
-		Thread.sleep(100)
+		Thread.sleep 100
 		Thread.yield()
-
-		int amount = 5_000_000
-		List<Integer> memoryHog = new ArrayList<>(amount)
-		for (i in 0..<amount) {
-			memoryHog.add(i)
+		// GC until it goes away
+		while (!cleaned.get()) {
+			System.gc()
+			Thread.sleep 100
+			Thread.yield()
 		}
-
-		System.gc()
-		Thread.sleep 100
-		Thread.yield()
-
-		List<Integer> memoryHog2 = new ArrayList<>(amount)
-		for (i in 0..<amount) {
-			memoryHog2.add(i)
-		}
-
-		System.gc()
-		Thread.sleep 100
-		Thread.yield()
-
-		List<Integer> memoryHog3 = new ArrayList<>(amount)
-		for (i in 0..<amount) {
-			memoryHog3.add(i)
-		}
-
-		System.gc()
-		Thread.sleep 100
-		Thread.yield()
-		System.gc()
-		Thread.sleep 100
-		Thread.yield()
-		System.gc()
-		Thread.sleep 10000
-		Thread.yield()
-
 		Assertions.assertTrue cleaned.get()
+
 	}
 }

@@ -14,53 +14,65 @@ public class BufferedIterator<X> implements Iterator<X> {
 
 	private static final Logger log = LoggerFactory.getLogger(BufferedIterator.class);
 
+	// bufferSize is how many items we can have in the buffer
 	private final int bufferSize;
 	private final Queue<X> buffer = new ArrayDeque<>();
 	private final Object lock = new Object();
+	/**
+	 * 'done' is true when no more items will be added to the buffer.
+	 * 'done' does not imply that the BufferedIterator cannot hold any more items - this iterator is finished if
+	 * 'done' is true and the buffer is empty.
+	 */
 	private volatile boolean done;
 
 	public BufferedIterator(Iterator<X> iter, int bufferSize) {
 		this.bufferSize = bufferSize;
 		var thisRef = new WeakReference<>(this);
+		startFeedLoop(thisRef, lock, bufferSize, buffer, iter);
+	}
+
+	// Separate method for the actual worker loopto avoid unintentionally capturing 'this' in the ctor.
+	// This allows the BufferedIterator to get garbage collected (hence why it is passed as a WeakReference), and then
+	// the loop will stop.
+	private static <Y> void startFeedLoop(WeakReference<BufferedIterator<Y>> thisRef, Object lock, int bufferSize, Queue<Y> buffer, Iterator<Y> iter) {
 		ThreadingUtils.tryStartVirtualThread(() -> {
 			try {
 				while (iter.hasNext()) {
-					BufferedIterator<X> thisResolved = thisRef.get();
-					if (thisResolved == null) {
+					// If the BufferedIterator got gc'd, stop
+					if (thisRef.get() == null) {
 						return;
 					}
-					thisResolved.add(iter.next());
+					Y next = iter.next();
+					synchronized (lock) {
+						while (buffer.size() >= bufferSize) {
+							if (thisRef.get() == null) {
+								return;
+							}
+							try {
+								// Sleep if buffer is full
+								lock.wait(1_000);
+							}
+							catch (InterruptedException e) {
+								throw new RuntimeException(e);
+							}
+						}
+						// Add item once there is space
+						buffer.add(next);
+						lock.notifyAll();
+					}
 				}
 			}
 			catch (Throwable t) {
 				log.error("BufferedIterator failed to read from {}", iter, t);
 			}
 			finally {
-				BufferedIterator<X> thisResolved = thisRef.get();
+				BufferedIterator<Y> thisResolved = thisRef.get();
 				if (thisResolved != null) {
 					thisResolved.done();
 				}
 			}
 		});
-	}
 
-	// Add to queue
-	private void add(X item) {
-		// Acquire lock
-		synchronized (lock) {
-			while (buffer.size() >= bufferSize) {
-				try {
-					// Sleep if buffer is full
-					lock.wait(10_000);
-				}
-				catch (InterruptedException e) {
-					throw new RuntimeException(e);
-				}
-			}
-			// Add item once there is space
-			buffer.add(item);
-			lock.notifyAll();
-		}
 	}
 
 	private void done() {
