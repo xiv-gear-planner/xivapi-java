@@ -7,6 +7,10 @@ import groovy.util.logging.Slf4j
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
+import java.lang.ref.Cleaner
+import java.lang.ref.WeakReference
+import java.util.concurrent.atomic.AtomicBoolean
+
 @CompileStatic
 @Slf4j
 class BufferedIteratorTests {
@@ -88,5 +92,74 @@ class BufferedIteratorTests {
 			Assertions.assertEquals(Math.min(10, it + 7), iter.index)
 		}
 
+	}
+
+	@CompileStatic
+	AtomicBoolean abandonedIteratorHelper() {
+		// true if the BI has been GC'd
+		var isCleaned = new AtomicBoolean()
+
+		List<Integer> inputs = (0..<10)
+
+		TrackingIterator<Integer> iter = new TrackingIterator<>(inputs)
+
+		BufferedIterator<Integer> bi = new BufferedIterator<>(iter, 5)
+
+		// Register it with a cleaner
+		var cleaner = Cleaner.create()
+		cleaner.register bi, {
+			log.info("Cleaned")
+			isCleaned.set(true)
+		}
+
+		// This is the last time we touch the BI
+		bi.next()
+		bi = null
+
+		return isCleaned
+	}
+
+	@Test
+	void testAbandonedIteratorIsCleanedUp() {
+		var cleaned = abandonedIteratorHelper()
+		// Give feeder time to initially fill
+		Thread.sleep(100)
+		Thread.yield()
+
+		int amount = 5_000_000
+		List<Integer> memoryHog = new ArrayList<>(amount)
+		for (i in 0..<amount) {
+			memoryHog.add(i)
+		}
+
+		System.gc()
+		Thread.sleep 100
+		Thread.yield()
+
+		List<Integer> memoryHog2 = new ArrayList<>(amount)
+		for (i in 0..<amount) {
+			memoryHog2.add(i)
+		}
+
+		System.gc()
+		Thread.sleep 100
+		Thread.yield()
+
+		List<Integer> memoryHog3 = new ArrayList<>(amount)
+		for (i in 0..<amount) {
+			memoryHog3.add(i)
+		}
+
+		System.gc()
+		Thread.sleep 100
+		Thread.yield()
+		System.gc()
+		Thread.sleep 100
+		Thread.yield()
+		System.gc()
+		Thread.sleep 10000
+		Thread.yield()
+
+		Assertions.assertTrue cleaned.get()
 	}
 }

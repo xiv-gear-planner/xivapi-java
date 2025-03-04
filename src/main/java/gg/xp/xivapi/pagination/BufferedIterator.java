@@ -4,6 +4,7 @@ import gg.xp.xivapi.mappers.util.ThreadingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -20,15 +21,25 @@ public class BufferedIterator<X> implements Iterator<X> {
 
 	public BufferedIterator(Iterator<X> iter, int bufferSize) {
 		this.bufferSize = bufferSize;
+		var thisRef = new WeakReference<>(this);
 		ThreadingUtils.tryStartVirtualThread(() -> {
 			try {
-				iter.forEachRemaining(this::add);
+				while (iter.hasNext()) {
+					BufferedIterator<X> thisResolved = thisRef.get();
+					if (thisResolved == null) {
+						return;
+					}
+					thisResolved.add(iter.next());
+				}
 			}
 			catch (Throwable t) {
 				log.error("BufferedIterator failed to read from {}", iter, t);
 			}
 			finally {
-				done();
+				BufferedIterator<X> thisResolved = thisRef.get();
+				if (thisResolved != null) {
+					thisResolved.done();
+				}
 			}
 		});
 	}
