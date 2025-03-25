@@ -1,5 +1,6 @@
 package gg.xp.xivapi.test.bufferediterator
 
+import gg.xp.xivapi.exceptions.XivApiPaginationException
 import gg.xp.xivapi.pagination.BufferedIterator
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
@@ -21,6 +22,7 @@ class BufferedIteratorTests {
 	class TrackingIterator<X> implements Iterator<X> {
 		private final List<X> elements;
 		private int index = 0
+		private int failAt = -1
 
 		@Override
 		boolean hasNext() {
@@ -31,6 +33,9 @@ class BufferedIteratorTests {
 		@Override
 		X next() {
 			log.info "next ${index}"
+			if (index == failAt) {
+				throw new RuntimeException("intentional failure")
+			}
 			X out = elements[index]
 			index++
 			return out
@@ -135,5 +140,81 @@ class BufferedIteratorTests {
 		}
 		Assertions.assertTrue cleaned.get()
 
+	}
+
+	@Test
+	void testFailureFirstElement() {
+		List<Integer> inputs = (0..<10)
+
+		TrackingIterator<Integer> iter = new TrackingIterator<>(inputs)
+		// Fail on the very first element
+		iter.failAt = 0
+
+		BufferedIterator<Integer> bi = new BufferedIterator<>(iter, 5)
+
+		// Give feeder time to initially fill
+		Thread.sleep(100)
+		Thread.yield()
+
+		inputs.forEach { it ->
+			if (!bi.hasNext()) {
+				Assertions.fail("Had no more elements")
+			}
+			Assertions.assertThrows(XivApiPaginationException, {bi.next()})
+		}
+	}
+
+	@Test
+	void testFailureEarly() {
+		List<Integer> inputs = (0..<10)
+
+		TrackingIterator<Integer> iter = new TrackingIterator<>(inputs)
+		// Fail during the initial read buffer
+		iter.failAt = 2
+
+		BufferedIterator<Integer> bi = new BufferedIterator<>(iter, 5)
+
+		// Give feeder time to initially fill
+		Thread.sleep(100)
+		Thread.yield()
+
+		inputs.forEach { it ->
+			if (!bi.hasNext()) {
+				Assertions.fail("Had no more elements")
+			}
+			if (it < 2) {
+				Assertions.assertEquals(it, bi.next())
+			}
+			else {
+				Assertions.assertThrows(XivApiPaginationException, {bi.next()})
+			}
+		}
+	}
+
+	@Test
+	void testFailureLate() {
+		List<Integer> inputs = (0..<10)
+
+		TrackingIterator<Integer> iter = new TrackingIterator<>(inputs)
+		// Fail after the initial read buffer
+		iter.failAt = 8
+
+		BufferedIterator<Integer> bi = new BufferedIterator<>(iter, 5)
+
+		// Give feeder time to initially fill
+		Thread.sleep(100)
+		Thread.yield()
+
+		inputs.forEach { it ->
+			if (!bi.hasNext()) {
+				Assertions.fail("Had no more elements")
+			}
+			if (it < 8) {
+				Assertions.assertEquals(it, bi.next())
+			}
+			else {
+				Assertions.assertThrows(XivApiPaginationException, {bi.next()})
+			}
+		}
 	}
 }
