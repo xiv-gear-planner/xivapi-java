@@ -1,6 +1,8 @@
 package gg.xp.xivapi.pagination;
 
+import gg.xp.xivapi.exceptions.XivApiPaginationException;
 import gg.xp.xivapi.mappers.util.ThreadingUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,8 +16,6 @@ public class BufferedIterator<X> implements Iterator<X> {
 
 	private static final Logger log = LoggerFactory.getLogger(BufferedIterator.class);
 
-	// bufferSize is how many items we can have in the buffer
-	private final int bufferSize;
 	private final Queue<X> buffer = new ArrayDeque<>();
 	private final Object lock = new Object();
 	/**
@@ -24,14 +24,14 @@ public class BufferedIterator<X> implements Iterator<X> {
 	 * 'done' is true and the buffer is empty.
 	 */
 	private volatile boolean done;
+	private volatile @Nullable Throwable failure;
 
 	public BufferedIterator(Iterator<X> iter, int bufferSize) {
-		this.bufferSize = bufferSize;
 		var thisRef = new WeakReference<>(this);
 		startFeedLoop(thisRef, lock, bufferSize, buffer, iter);
 	}
 
-	// Separate method for the actual worker loopto avoid unintentionally capturing 'this' in the ctor.
+	// Separate method for the actual worker loop to avoid unintentionally capturing 'this' in the ctor.
 	// This allows the BufferedIterator to get garbage collected (hence why it is passed as a WeakReference), and then
 	// the loop will stop.
 	private static <Y> void startFeedLoop(WeakReference<BufferedIterator<Y>> thisRef, Object lock, int bufferSize, Queue<Y> buffer, Iterator<Y> iter) {
@@ -64,6 +64,11 @@ public class BufferedIterator<X> implements Iterator<X> {
 			}
 			catch (Throwable t) {
 				log.error("BufferedIterator failed to read from {}", iter, t);
+				BufferedIterator<Y> thisResolved = thisRef.get();
+				if (thisResolved != null) {
+					thisResolved.failure = t;
+				}
+
 			}
 			finally {
 				BufferedIterator<Y> thisResolved = thisRef.get();
@@ -92,7 +97,9 @@ public class BufferedIterator<X> implements Iterator<X> {
 					return true;
 				}
 				else if (done) {
-					return false;
+					// Surface a failure after all non-failed elements have been consumed.
+					// Thus, we need
+					return failure != null;
 				}
 				else {
 					try {
@@ -117,6 +124,9 @@ public class BufferedIterator<X> implements Iterator<X> {
 					return next;
 				}
 				else if (done) {
+					if (failure != null) {
+						throw new XivApiPaginationException("BufferedIterator failed to read", failure);
+					}
 					throw new NoSuchElementException("Iteration done");
 				}
 				else {

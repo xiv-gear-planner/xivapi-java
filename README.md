@@ -20,7 +20,7 @@ See [Maven Central](https://central.sonatype.com/artifact/app.xivgear/xivapi-jav
 ```groovy
 dependencies {
 	// Be sure to check what the latest version is
-	implementation group: 'app.xivgear', name: 'xivapi-java', version: '0.1.5'
+	implementation group: 'app.xivgear', name: 'xivapi-java', version: '0.1.8'
 }
 ```
 
@@ -31,7 +31,7 @@ dependencies {
     <groupId>app.xivgear</groupId>
     <artifactId>xivapi-java</artifactId>
     // Be sure to check what the latest version is
-    <version>0.1.5</version>
+    <version>0.1.8</version>
 </dependency>
 ```
 
