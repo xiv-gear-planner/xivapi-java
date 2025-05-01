@@ -83,7 +83,7 @@ class BufferedIteratorTests {
 		BufferedIterator<Integer> bi = new BufferedIterator<>(iter, 5)
 
 		// Give feeder time to initially fill
-		Thread.sleep(100)
+		Thread.sleep(200)
 		Thread.yield()
 
 		inputs.forEach { it ->
