@@ -12,6 +12,10 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
+/**
+ * BufferedIterator wraps a normal Iterator, and adds a buffer with a given maximum size. A background thread
+ * @param <X>
+ */
 public class BufferedIterator<X> implements Iterator<X> {
 
 	private static final Logger log = LoggerFactory.getLogger(BufferedIterator.class);
