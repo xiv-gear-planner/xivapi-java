@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import gg.xp.xivapi.annotations.XivApiAs;
+import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.clienttypes.XivApiLangValue;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
 import gg.xp.xivapi.exceptions.XivApiMissingNodeException;
@@ -37,10 +39,17 @@ public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> 
 	private final Class<X> innerTypeClass;
 
 	public LangValueFieldMapper(String fieldName, boolean isTransient, Method method, ObjectMapper mapper) {
+		if (method.isAnnotationPresent(XivApiRaw.class)) {
+			fieldName += "@as(raw)";
+		}
+		XivApiAs genericAs = method.getAnnotation(XivApiAs.class);
+		if (genericAs != null) {
+			fieldName += "@as(%s)".formatted(genericAs.value());
+		}
 		this.fieldName = fieldName;
 		this.isTransient = isTransient;
 		this.method = method;
-		this.fieldMatcher = Pattern.compile(fieldName + "@lang\\(([a-z]+)\\)");
+		this.fieldMatcher = Pattern.compile(Pattern.quote(fieldName) + "@lang\\(([a-z]+)\\)");
 		this.langs = MappingUtils.ALL_LANGS;
 		ParameterizedType fullType = ((ParameterizedType) method.getGenericReturnType());
 		Type innerType = fullType.getActualTypeArguments()[0];
@@ -81,6 +90,9 @@ public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> 
 			var child = QueryFieldsBuilder.normalField(fieldName);
 			if (isArray) {
 				child.markAsArray();
+			}
+			if (isTransient) {
+				child.markAsTransient();
 			}
 			child.addDecorator("lang(%s)".formatted(lang));
 			innerMapper.buildQueryFields(child);

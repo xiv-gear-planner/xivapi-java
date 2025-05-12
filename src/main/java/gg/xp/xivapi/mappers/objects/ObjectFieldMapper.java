@@ -3,6 +3,7 @@ package gg.xp.xivapi.mappers.objects;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.annotations.NullIfZero;
+import gg.xp.xivapi.annotations.XivApiAs;
 import gg.xp.xivapi.annotations.XivApiLang;
 import gg.xp.xivapi.annotations.XivApiMetaField;
 import gg.xp.xivapi.annotations.XivApiRaw;
@@ -108,7 +109,11 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 				if (method.isAnnotationPresent(XivApiRaw.class)) {
 					fieldName += "@as(raw)";
 				}
-				else if (langAnn != null) {
+				XivApiAs genericAs = method.getAnnotation(XivApiAs.class);
+				if (genericAs != null) {
+					fieldName += "@as(%s)".formatted(genericAs.value());
+				}
+				if (langAnn != null) {
 					fieldName += "@lang(%s)".formatted(langAnn.value());
 				}
 				if (transientFieldAnn != null) {

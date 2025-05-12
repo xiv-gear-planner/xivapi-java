@@ -27,6 +27,6 @@ public interface XivApiLangValue<X> extends Serializable {
 	}
 
 	default X getJp() {
-		return get("jp");
+		return get("ja");
 	}
 }
