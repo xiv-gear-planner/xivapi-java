@@ -23,8 +23,4 @@ public interface AozAction extends XivApiObject {
 	@XivApiTransientField("Location")
 	@XivApiLang("de")
 	Location getLocationDe();
-
-	// You can also map a sub-struct to all langs
-	@XivApiTransientField("Location")
-	XivApiLangValue<Location> getLocationsAll();
 }
