@@ -26,6 +26,12 @@ public interface XivApiLangValue<X> extends Serializable {
 		return get("fr");
 	}
 
+	default X getJa() {
+		return get("ja");
+	}
+
+	@JsonIgnore
+	@Deprecated
 	default X getJp() {
 		return get("ja");
 	}
