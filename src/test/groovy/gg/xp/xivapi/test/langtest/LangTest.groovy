@@ -28,6 +28,7 @@ class LangTest {
 		assertEquals 'the Binding Coil of Bahamut - Turn 1', action.locationFull.nameStrings.en
 		assertEquals 'Verschlungene Schatten 1', action.locationFull.nameStrings.de
 		assertEquals 'le Labyrinthe de Bahamut I', action.locationFull.nameStrings.fr
+		assertEquals '大迷宮バハムート：邂逅編1', action.locationFull.nameStrings.ja
 		assertEquals '大迷宮バハムート：邂逅編1', action.locationFull.nameStrings.jp
 		assertEquals 'Verschlungene Schatten 1', action.locationDe.name
 
@@ -67,6 +68,7 @@ class LangTest {
 		assertEquals 'the Binding Coil of Bahamut - Turn 1', action.locationsAll.en.name
 		assertEquals 'Verschlungene Schatten 1', action.locationsAll.de.name
 		assertEquals 'le Labyrinthe de Bahamut I', action.locationsAll.fr.name
+		assertEquals '大迷宮バハムート：邂逅編1', action.locationsAll.ja.name
 		assertEquals '大迷宮バハムート：邂逅編1', action.locationsAll.jp.name
 
 		assertEquals 'An industrial form of machina-based aetherial manipulation developed and adapted by the Allagan Empire. Through the compression of ambient lightning-aspected aether, the caster (or casting machina) floods the vicinity with highly charged arcs of electricity.', action.description.en
@@ -77,6 +79,7 @@ class LangTest {
 		assertEquals 'the Binding Coil of Bahamut - Turn 1', rehydrated.locationsAll.en.name
 		assertEquals 'Verschlungene Schatten 1', rehydrated.locationsAll.de.name
 		assertEquals 'le Labyrinthe de Bahamut I', rehydrated.locationsAll.fr.name
+		assertEquals '大迷宮バハムート：邂逅編1', rehydrated.locationsAll.ja.name
 		assertEquals '大迷宮バハムート：邂逅編1', rehydrated.locationsAll.jp.name
 
 
