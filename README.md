@@ -228,6 +228,7 @@ public interface Item extends XivApiObject {
 - Multi-sheet searching
 - Groovy DSLs
 - Set a default language
+- Subrow IDs (querying, retrieving, etc)
 
 ## Debugging
 
