@@ -8,6 +8,7 @@ import gg.xp.xivapi.clienttypes.GameVersion;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.clienttypes.XivApiSchemaVersion;
 import gg.xp.xivapi.clienttypes.XivApiSettings;
+import gg.xp.xivapi.clienttypes.XivApiSubrowObject;
 import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
 import gg.xp.xivapi.filters.SearchFilter;
@@ -206,6 +207,37 @@ public class XivApiClient implements AutoCloseable {
 				.appendPath("sheet")
 				.appendPath(sheetName)
 				.appendPath(String.valueOf(id))
+				.addParameters(mapping.getQueryFields()));
+
+		JsonNode root = sendGET(uri);
+
+		XivApiSchemaVersion sv = MappingUtils.makeSchemaVersion(root.get("schema").textValue());
+
+		var cache = new DedupeCacheImpl();
+		XivApiContext context = new XivApiContext(root, settings, sv, urlResolver, cache);
+
+		return mapping.getWrappedMapper().getValue(root, context);
+	}
+
+	/**
+	 * Retrieve a single item by row+subrow ID. e.g. MapMarker 2:1 would be row ID 2, subrow ID 1.
+	 *
+	 * @param cls The type/sheet to retrieve
+	 * @param rowId  The row ID to retrieve
+	 * @param subrowId  The subrow ID to retrieve
+	 * @param <X> The type/sheet to retrieve
+	 * @return The mapped object
+	 */
+	public <X extends XivApiSubrowObject> X getBySubrowId(Class<X> cls, int rowId, int subrowId) {
+
+		String sheetName = MappingUtils.validateAndGetSheetName(cls);
+
+		RootMapper<X> mapping = getMapping(cls);
+
+		URI uri = buildUri(builder -> builder
+				.appendPath("sheet")
+				.appendPath(sheetName)
+				.appendPath(String.format("%d:%d", rowId, subrowId))
 				.addParameters(mapping.getQueryFields()));
 
 		JsonNode root = sendGET(uri);
