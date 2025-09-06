@@ -95,7 +95,7 @@ publishing {
 }
 
 dependencies {
-	testImplementation 'org.apache.groovy:groovy:4.0.22'
+	testImplementation 'org.apache.groovy:groovy:5.0.0'
 	implementation 'org.slf4j:slf4j-api:2.0.12'
 	// https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5
 	api group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.3.1'
