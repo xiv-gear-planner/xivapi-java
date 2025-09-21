@@ -134,12 +134,12 @@ class SerDeTest {
 
 	@Test
 	void testIconAssetUrl() {
-		Assertions.assertEquals(new URI("https://v2.xivapi.com/api/asset/ui/icon/024000/024103_hr1.tex?format=png"), item.icon.assetPathHD.getURI(ImageFormat.PNG))
+		Assertions.assertEquals(new URI("https://v2.xivapi.com/api/asset?path=ui%2Ficon%2F024000%2F024103_hr1.tex&format=png"), item.icon.assetPathHD.getURI(ImageFormat.PNG))
 	}
 
 	@Test
 	void testIconAssetUrlAsUri() {
-		Assertions.assertEquals(new URI("https://v2.xivapi.com/api/asset/ui/icon/024000/024103_hr1.tex?format=jpg"), item.icon.assetPathHDasURI)
+		Assertions.assertEquals(new URI("https://v2.xivapi.com/api/asset?path=ui%2Ficon%2F024000%2F024103_hr1.tex&format=jpg"), item.icon.assetPathHDasURI)
 	}
 
 	@Test
