@@ -75,10 +75,7 @@ public final class UrlResolverImpl implements XivApiUrlResolver, Serializable {
 	@Override
 	public URI getAssetUri(String assetPath, String format) {
 		try {
-			// TODO: switch from old format to new
-			// Old https://v2.xivapi.com/api/asset/ui/icon/060000/060240_hr1.tex?format=png
-			// New https://v2.xivapi.com/api/asset?path=ui/icon/060000/060240_hr1.tex&format=png
-			return new URIBuilder(baseAssetUri).appendPath("/asset").appendPath(assetPath).addParameter("format", format).build();
+			return new URIBuilder(baseAssetUri).appendPath("/asset").addParameter("path", assetPath).addParameter("format", format).build();
 		}
 		catch (URISyntaxException e) {
 			throw new RuntimeException(e);
