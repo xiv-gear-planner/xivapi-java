@@ -4,5 +4,5 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-public record GameVersion(@JsonProperty List<String> names) {
+public record GameVersion(@JsonProperty List<String> names, @JsonProperty String key) {
 }
