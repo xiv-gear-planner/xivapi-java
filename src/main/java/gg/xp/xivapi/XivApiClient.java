@@ -337,7 +337,7 @@ public class XivApiClient implements AutoCloseable {
 	}
 
 	/**
-	 * @return The list of available game versions, but flattened.
+	 * @return The list of available game versions, but transformed into a flat list of version names.
 	 *
 	 * @see #getGameVersionsFull()
 	 */
@@ -357,6 +357,16 @@ public class XivApiClient implements AutoCloseable {
 		JsonNode result = sendGET(uri).get("versions");
 		return mapper.convertValue(result, new TypeReference<>() {
 		});
+	}
+
+	/**
+	 * @return The list of available game versions as a list of version keys.
+	 */
+	public List<String> getGameVersionKeys() {
+		return getGameVersionsFull()
+				.stream()
+				.map(GameVersion::key)
+				.toList();
 	}
 
 	public URI getAssetUri(String assetPath, AssetFormat format) {
