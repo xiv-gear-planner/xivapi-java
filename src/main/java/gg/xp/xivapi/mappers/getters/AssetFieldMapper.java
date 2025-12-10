@@ -31,7 +31,7 @@ public class AssetFieldMapper<X extends AssetFormat> implements FieldMapper<XivA
 	}
 
 	private record XivApiAssetImpl<X extends AssetFormat>(String raw,
-	                                                      XivApiUrlResolver resolver) implements XivApiAsset<X>, Serializable {
+	                                                      XivApiUrlResolver resolver) implements XivApiAsset<X> {
 
 		@Serial
 		private static final long serialVersionUID = 4701049157502496553L;
