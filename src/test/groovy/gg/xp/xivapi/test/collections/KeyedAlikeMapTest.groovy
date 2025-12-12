@@ -13,7 +13,7 @@ class KeyedAlikeMapTest {
 	private static final String key2 = "Bar"
 	private static final String key3 = "Baz"
 	private static final Set<String> keySet = new LinkedHashSet([key1, key2, key3])
-	private static KeyedAlikeMapFactory<String> factory = new KeyedAlikeMapFactory<>(keySet)
+	private static KeyedAlikeMapFactory<String> factory = new KeyedAlikeMapFactory<>(this.keySet)
 
 	private static void assertSize(int expected, Map<?, ?> map) {
 		Assertions.assertEquals expected, map.size()
@@ -94,27 +94,48 @@ class KeyedAlikeMapTest {
 		map[key2] = "Stuff2"
 		assertSize 2, map
 		Assertions.assertEquals([(key1): "Stuff", (key2): "Stuff2"], map)
-		Assertions.assertEquals($/KeyedAlikeMap{${key2}=Stuff2, ${key1}=Stuff}/$.toString(), map.toString())
+		Assertions.assertEquals($/KeyedAlikeMap{${key2}=Stuff2, ${key1}=Stuff}/$.toString(), map.toString());
 
-		// Key set does not have a defined order
-		equalsIgnoreOrder([key1, key2], map.keySet())
-		equalsIgnoreOrder([key1, key2], map.entrySet().collect { it.key })
-		// Values should happen in the original array order
-		Assertions.assertEquals(["Stuff", "Stuff2"], map.values().toList())
-		// Entry set does not have a defined order
-		equalsIgnoreOrder(["Stuff", "Stuff2"], map.entrySet().collect { it.value })
+		{
+			Assertions.assertTrue(map.containsKey(key1))
+			Assertions.assertTrue(map.containsKey(key2))
+			Assertions.assertFalse(map.containsKey(key3))
+			Assertions.assertFalse(map.containsKey("Invalid key"))
+			// Key set does not have a defined order
+			Set<String> keySet = map.keySet()
+			equalsIgnoreOrder([key1, key2], keySet)
+			Assertions.assertTrue(keySet.contains(key1))
+			Assertions.assertTrue(keySet.contains(key2))
+			Assertions.assertFalse(keySet.contains(key3))
+			equalsIgnoreOrder([key1, key2], map.entrySet().collect { it.key })
+			// Values should happen in the original array order
+			Assertions.assertEquals(["Stuff", "Stuff2"], map.values().toList())
+			// Entry set does not have a defined order
+			equalsIgnoreOrder(["Stuff", "Stuff2"], map.entrySet().collect { it.value })
+		}
 
 		map[key3] = null
-		map.remove(key2)
-		assertSize 2, map
-		Assertions.assertEquals([(key1): "Stuff", (key3): null], map)
-		// Key set does not have a defined order
-		equalsIgnoreOrder([key1, key3], map.keySet())
-		equalsIgnoreOrder([key1, key3], map.entrySet().collect { it.key })
-		// Values should happen in the original array order
-		Assertions.assertEquals(["Stuff", null], map.values().toList())
-		// Entry set does not have a defined order
-		equalsIgnoreOrder(["Stuff", null], map.entrySet().collect { it.value })
+		map.remove(key2);
+
+		{
+			assertSize 2, map
+			Assertions.assertEquals([(key1): "Stuff", (key3): null], map)
+			// Key set does not have a defined order
+			Set<String> keySet = map.keySet()
+			equalsIgnoreOrder([key1, key3], keySet)
+			Assertions.assertTrue(keySet.contains(key1))
+			Assertions.assertFalse(keySet.contains(key2))
+			Assertions.assertTrue(keySet.contains(key3))
+			equalsIgnoreOrder([key1, key3], map.entrySet().collect { it.key })
+			// Values should happen in the original array order
+			Collection<Object> values = map.values()
+			Assertions.assertEquals(["Stuff", null], values.toList())
+			Assertions.assertTrue(values.contains("Stuff"))
+			Assertions.assertTrue(values.contains(null))
+			Assertions.assertFalse(values.contains("Stuff2"))
+			// Entry set does not have a defined order
+			equalsIgnoreOrder(["Stuff", null], map.entrySet().collect { it.value })
+		}
 
 		var map2 = factory.create(map)
 		Assertions.assertEquals map, map2
