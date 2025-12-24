@@ -39,7 +39,26 @@ public class BasicValueMapper<X> implements FieldMapper<X> {
 			return out;
 		}
 		catch (Throwable t) {
-			throw new XivApiException("Error deserializing value %s into %s".formatted(current, fieldType), t);
+			// Special case for when a breaking schema change turns something into `{"value": <value>}` instead of
+			// just `value`.
+			boolean autoUnwrapValue = context.settings().getAutoUnwrapValue();
+			Throwable secondary = null;
+			if (autoUnwrapValue) {
+				if (current.isObject() && current.has("value")) {
+					try {
+						return getValue(current.get("value"), context);
+					}
+					catch (Throwable inner) {
+						// Ignore this and just re-throw the original exception
+						secondary = inner;
+					}
+				}
+			}
+			XivApiException exc = new XivApiException("Error deserializing value %s into %s".formatted(current, fieldType), t);
+			if (secondary != null) {
+				exc.addSuppressed(secondary);
+			}
+			throw exc;
 		}
 	}
 
