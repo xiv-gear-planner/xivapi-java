@@ -132,6 +132,11 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 	}
 
 	// TODO: figure out a way to also allow this to make use of KeyedAlikeMap (check if worth)
+	/*
+	This is harder than it seems at first. You have to have each of them reference *some* kind of common object, like
+	the KeyedAlikeMapFactory, but if the keys aren't serializable, then you can't use that. We have to figure out a way
+	to convert to and from the "safe" keys but only on a single centralized instance.
+	 */
 	private record SerializableForm(Map<MethodMetadata, Object> methodMetaMap, boolean strict) implements Serializable {
 		@Serial
 		private Object readResolve() {

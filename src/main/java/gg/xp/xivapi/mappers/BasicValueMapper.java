@@ -7,8 +7,6 @@ import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.impl.XivApiContext;
 
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Mapper for an individual value (numeric, string, boolean)
@@ -39,7 +37,26 @@ public class BasicValueMapper<X> implements FieldMapper<X> {
 			return out;
 		}
 		catch (Throwable t) {
-			throw new XivApiException("Error deserializing value %s into %s".formatted(current, fieldType), t);
+			// Special case for when a breaking schema change turns something into `{"value": <value>}` instead of
+			// just `value`.
+			boolean autoUnwrapValue = context.settings().isAutoUnwrapValue();
+			Throwable secondary = null;
+			if (autoUnwrapValue) {
+				if (current.isObject() && current.has("value")) {
+					try {
+						return getValue(current.get("value"), context);
+					}
+					catch (Throwable inner) {
+						// Ignore this and just re-throw the original exception
+						secondary = inner;
+					}
+				}
+			}
+			XivApiException exc = new XivApiException("Error deserializing value %s into %s".formatted(current, fieldType), t);
+			if (secondary != null) {
+				exc.addSuppressed(secondary);
+			}
+			throw exc;
 		}
 	}
 
