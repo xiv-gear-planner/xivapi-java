@@ -20,7 +20,7 @@ class AutoUnwrapValueTest {
 	@Test
 	void autoUnwrapEnabledTest() {
 		XivApiClient client = new XivApiClient({ XivApiSettings.Builder it ->
-			it.autoUnwrapValue = true
+			// It's the default, we don't need to set it
 			it.schemaVersion = schemaVersion
 			it.gameVersion = "7.05"
 		})
