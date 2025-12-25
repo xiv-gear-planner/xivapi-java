@@ -62,7 +62,7 @@ public final class XivApiSettings {
 		return userAgent;
 	}
 
-	public boolean getAutoUnwrapValue() {
+	public boolean isAutoUnwrapValue() {
 		return autoUnwrapValue;
 	}
 
@@ -90,6 +90,14 @@ public final class XivApiSettings {
 			}
 		}
 
+		/**
+		 * Enable stricter handling of null/undefined/missing/zero values. Defaults to true. Disabling this will cause
+		 * null (for objects) or zero/false (for primitives) to be returned instead of throwing an exception in most
+		 * circumstances.
+		 *
+		 * @param strict Whether to enable strict mode.
+		 * @return The builder
+		 */
 		public Builder setStrict(boolean strict) {
 			this.strict = strict;
 			return this;

@@ -7,8 +7,6 @@ import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.impl.XivApiContext;
 
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Mapper for an individual value (numeric, string, boolean)
@@ -41,7 +39,7 @@ public class BasicValueMapper<X> implements FieldMapper<X> {
 		catch (Throwable t) {
 			// Special case for when a breaking schema change turns something into `{"value": <value>}` instead of
 			// just `value`.
-			boolean autoUnwrapValue = context.settings().getAutoUnwrapValue();
+			boolean autoUnwrapValue = context.settings().isAutoUnwrapValue();
 			Throwable secondary = null;
 			if (autoUnwrapValue) {
 				if (current.isObject() && current.has("value")) {
