@@ -3,6 +3,7 @@ package gg.xp.xivapi.test.pagertest
 import gg.xp.xivapi.XivApiClient
 import gg.xp.xivapi.clienttypes.XivApiSettings
 import gg.xp.xivapi.pagination.ListOptions
+import gg.xp.xivapi.test.testutils.TestUtils
 import groovy.transform.CompileStatic
 import org.apache.commons.collections4.IteratorUtils
 import org.junit.jupiter.api.Assertions
@@ -57,6 +58,38 @@ class BasicListTest {
 
 		Assertions.assertEquals(124, dumped[124].rowId)
 		Assertions.assertEquals("Being Mortal", dumped[124].action.name)
+
+		// Size before: 153916
+		// Size after: 85026
+		List<AozAction> deserialized = (List<AozAction>) TestUtils.serializeAndDeserialize(dumped)
+
+		verifySameKeyMapping(dumped)
+		verifySameKeyMapping(deserialized)
+	}
+
+	private static void verifySameKeyMapping(List<AozAction> list) {
+		var first = list[0]
+		var firstMap = getBackingMap(first)
+		var firstKeyMapping = getKeyMapping(firstMap)
+
+		list.eachWithIndex { AozAction item, int index ->
+			var map = getBackingMap(item)
+			var keyMapping = getKeyMapping(map)
+			Assertions.assertSame(firstKeyMapping, keyMapping, "Item at index $index does not share the same key mapping")
+		}
+	}
+
+	private static Map getBackingMap(Object proxy) {
+		var handler = java.lang.reflect.Proxy.getInvocationHandler(proxy)
+		var field = handler.getClass().getDeclaredField("methodValueMap")
+		field.setAccessible(true)
+		return (Map) field.get(handler)
+	}
+
+	private static Object getKeyMapping(Map map) {
+		var field = map.getClass().getDeclaredField("keyMapping")
+		field.setAccessible(true)
+		return field.get(map)
 	}
 
 	@Test

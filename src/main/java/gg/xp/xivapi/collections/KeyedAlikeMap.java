@@ -3,6 +3,7 @@ package gg.xp.xivapi.collections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.Arrays;
@@ -32,7 +33,7 @@ import java.util.stream.Stream;
  * @see KeyedAlikeMapFactory
  */
 @SuppressWarnings("Convert2streamapi") // performance
-public class KeyedAlikeMap<K, V> implements Map<K, V> {
+public class KeyedAlikeMap<K, V> implements Map<K, V>, Serializable {
 
 	/**
 	 * Contains the universe of keys. The integers represent the index that the value corresponding to the key will be
@@ -47,11 +48,16 @@ public class KeyedAlikeMap<K, V> implements Map<K, V> {
 	 * state of the map is to have no entries.
 	 */
 	private final Object[] values;
+
 	/**
 	 * Sentry value for elements which have explicitly been set to null.
 	 * Unset values instead use a literal null.
 	 */
-	private static final Object NULL_MARKER = new Object();
+	private static final Serializable NULL_MARKER = NullMarkerEnum.INSTANCE;
+
+	private enum NullMarkerEnum {
+		INSTANCE
+	}
 
 	KeyedAlikeMap(Map<K, Integer> keyMapping) {
 		//noinspection AssignmentOrReturnOfFieldWithMutableType
@@ -108,6 +114,7 @@ public class KeyedAlikeMap<K, V> implements Map<K, V> {
 
 	/**
 	 * Get the index for a key. Throws an exception if the key is not in the allowed key set.
+	 *
 	 * @param key The key
 	 * @return The corresponding value index
 	 * @throws IllegalArgumentException If the key is not in the allowed key set

@@ -12,7 +12,9 @@ import gg.xp.xivapi.annotations.XivApiTransientField;
 import gg.xp.xivapi.clienttypes.XivApiBase;
 import gg.xp.xivapi.clienttypes.XivApiLangValue;
 import gg.xp.xivapi.clienttypes.XivApiObject;
+import gg.xp.xivapi.collections.KeySerDe;
 import gg.xp.xivapi.collections.KeyedAlikeMapFactory;
+import gg.xp.xivapi.mappers.objects.serialization.MethodKeySerDe;
 import gg.xp.xivapi.exceptions.XivApiDeserializationException;
 import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.impl.XivApiContext;
@@ -28,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.URI;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -132,7 +133,8 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 		allMethods.add(ridMethod);
 		allMethods.add(svMethod);
 		allMethods.add(tsMethod);
-		this.kaMapFactory = new KeyedAlikeMapFactory<>(allMethods);
+		KeySerDe<Method, ?> serDe = new MethodKeySerDe();
+		this.kaMapFactory = new KeyedAlikeMapFactory<>(allMethods, serDe);
 	}
 
 	@Override
