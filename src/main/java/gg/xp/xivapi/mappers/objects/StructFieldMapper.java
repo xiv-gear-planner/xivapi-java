@@ -3,9 +3,11 @@ package gg.xp.xivapi.mappers.objects;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.clienttypes.XivApiBase;
-import gg.xp.xivapi.collections.KeyedAlikeMapFactory;
-import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.clienttypes.XivApiStruct;
+import gg.xp.xivapi.collections.KeySerDe;
+import gg.xp.xivapi.collections.KeyedAlikeMapFactory;
+import gg.xp.xivapi.mappers.objects.serialization.MethodKeySerDe;
+import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.QueryFieldsBuilder;
@@ -18,7 +20,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,7 +63,8 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 		Set<Method> allMethods = new HashSet<>(methodFieldMap.keySet());
 		allMethods.add(svMethod);
 		allMethods.add(tsMethod);
-		this.kaMapFactory = new KeyedAlikeMapFactory<>(allMethods);
+		KeySerDe<Method, ?> serDe = new MethodKeySerDe();
+		this.kaMapFactory = new KeyedAlikeMapFactory<>(allMethods, serDe);
 	}
 
 	@Override

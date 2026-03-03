@@ -20,7 +20,7 @@ class TestUtils {
 
 			// Deserialize the object from the byte array input stream
 			def deserializedObj = ois.readObject()
-			log.info "Object serialized and deserialized successfully"
+			log.info "Object serialized and deserialized successfully. Serialized size: {} bytes", serializedData.length
 			return deserializedObj as X
 		}
 	}
