@@ -71,7 +71,13 @@ public class XivApiClient implements AutoCloseable {
 	 */
 	public XivApiClient(XivApiSettings settings) {
 		this.settings = settings;
-		client = HttpClient.newBuilder().build();
+		HttpClient providedClient = settings.getHttpClientOverride();
+		if (providedClient != null) {
+			client = providedClient;
+		}
+		else {
+			client = HttpClient.newBuilder().build();
+		}
 		int limit = settings.getConcurrencyLimit();
 		if (limit > 0) {
 			limiter = new Semaphore(limit);
