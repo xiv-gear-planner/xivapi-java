@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
 import java.util.function.Consumer;
 
 /**
@@ -22,8 +23,9 @@ public final class XivApiSettings {
 	private final @Nullable String schemaVersion;
 	private final String userAgent;
 	private final boolean autoUnwrapValue;
+	private final @Nullable HttpClient httpClientOverride;
 
-	private XivApiSettings(boolean strict, URI baseUri, @Nullable URI baseAssetUri, int concurrencyLimit, @Nullable String gameVersion, @Nullable String schemaVersion, String userAgent, boolean autoUnwrapValue) {
+	private XivApiSettings(boolean strict, URI baseUri, @Nullable URI baseAssetUri, int concurrencyLimit, @Nullable String gameVersion, @Nullable String schemaVersion, String userAgent, boolean autoUnwrapValue, @Nullable HttpClient httpClientOverride) {
 		this.strict = strict;
 		this.baseUri = baseUri;
 		this.baseAssetUri = baseAssetUri;
@@ -32,6 +34,7 @@ public final class XivApiSettings {
 		this.schemaVersion = schemaVersion;
 		this.userAgent = userAgent;
 		this.autoUnwrapValue = autoUnwrapValue;
+		this.httpClientOverride = httpClientOverride;
 	}
 
 	public boolean isStrict() {
@@ -66,6 +69,10 @@ public final class XivApiSettings {
 		return autoUnwrapValue;
 	}
 
+	public @Nullable HttpClient getHttpClientOverride() {
+		return httpClientOverride;
+	}
+
 	public static Builder newBuilder() {
 		return new Builder();
 	}
@@ -80,6 +87,7 @@ public final class XivApiSettings {
 		@Nullable String schemaVersion;
 		String userAgent = "Xivapi-Java";
 		boolean autoUnwrapValue = true;
+		@Nullable HttpClient httpClient;
 
 		{
 			try {
@@ -186,6 +194,17 @@ public final class XivApiSettings {
 		}
 
 		/**
+		 * Set a custom HttpClient to use for API requests.
+		 *
+		 * @param httpClient The HttpClient to use.
+		 * @return The builder.
+		 */
+		public Builder setHttpClient(@Nullable HttpClient httpClient) {
+			this.httpClient = httpClient;
+			return this;
+		}
+
+		/**
 		 * Method that allows you to supply configurations to the builder in a re-usable manner, without breaking
 		 * the builder pattern by passing the builder into another method.
 		 *
@@ -198,7 +217,7 @@ public final class XivApiSettings {
 		}
 
 		public XivApiSettings build() {
-			return new XivApiSettings(strict, baseUri, baseAssetUri, concurrencyLimit, gameVersion, schemaVersion, userAgent, autoUnwrapValue);
+			return new XivApiSettings(strict, baseUri, baseAssetUri, concurrencyLimit, gameVersion, schemaVersion, userAgent, autoUnwrapValue, httpClient);
 		}
 	}
 
