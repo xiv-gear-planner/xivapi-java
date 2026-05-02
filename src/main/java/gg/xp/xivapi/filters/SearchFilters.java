@@ -20,6 +20,7 @@ public final class SearchFilters {
 
 		@Override
 		public String toFilterString() {
+			// A one-entry OR can just use the inner part
 			if (filters.size() == 1) {
 				return filters.get(0).toFilterString();
 			}
@@ -33,7 +34,7 @@ public final class SearchFilters {
 					})
 					.map(searchFilter -> {
 						String inner = searchFilter.toFilterStringWrapped();
-						if (inner.startsWith("-")) {
+						if (inner.startsWith("-") || searchFilter instanceof SearchFilterAnd) {
 							return "(" + inner + ")";
 						}
 						return inner;

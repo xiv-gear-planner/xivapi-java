@@ -187,4 +187,13 @@ class SearchFilterTests {
 		var filter = not(not(not(and(not(eq('Bar', "Baz")), eq('Foo', 5)))))
 		assertEquals '-(-Bar="Baz" +Foo=5)', filter.toFilterString()
 	}
+
+	@Test
+	void testOuterAndInnerOr() {
+		var filter = or(
+				and("foo1", "foo2"),
+				and("bar1", "bar2")
+		)
+		assertEquals '(+foo1 +foo2) (+bar1 +bar2)', filter.toFilterString()
+	}
 }
