@@ -102,6 +102,7 @@ public final class SearchFilters {
 
 		@Override
 		public String toFilterString() {
+			// Unwrap double negation
 			if (filter instanceof SearchFilterNot notChild) {
 				return notChild.filter.toFilterString();
 			}
@@ -146,23 +147,29 @@ public final class SearchFilters {
 	}
 
 	public static SearchFilter or(List<SearchFilter> filters) {
-		return new SearchFilterOr(new ArrayList<>(filters));
+		List<SearchFilter> flattened = filters.stream()
+				.flatMap(f -> f instanceof SearchFilterOr orChild ? orChild.filters().stream() : Stream.of(f))
+				.toList();
+		return new SearchFilterOr(flattened);
 	}
 
 	public static SearchFilter or(SearchFilter... filters) {
-		return new SearchFilterOr(Arrays.asList(filters));
+		return or(Arrays.asList(filters));
 	}
 
 	public static SearchFilter and(String... filters) {
-		return new SearchFilterAnd(Stream.of(filters).map(SearchFilters::of).toList());
+		return and(Stream.of(filters).map(SearchFilters::of).toList());
 	}
 
 	public static SearchFilter and(List<SearchFilter> filters) {
-		return new SearchFilterAnd(new ArrayList<>(filters));
+		List<SearchFilter> flattened = filters.stream()
+				.flatMap(f -> f instanceof SearchFilterAnd andChild ? andChild.filters().stream() : Stream.of(f))
+				.toList();
+		return new SearchFilterAnd(flattened);
 	}
 
 	public static SearchFilter and(SearchFilter... filters) {
-		return new SearchFilterAnd(Arrays.asList(filters));
+		return and(Arrays.asList(filters));
 	}
 
 	public static SearchFilter not(SearchFilter filter) {

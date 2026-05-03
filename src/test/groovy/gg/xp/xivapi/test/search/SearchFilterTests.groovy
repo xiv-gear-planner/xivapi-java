@@ -4,7 +4,7 @@ package gg.xp.xivapi.test.search
 import org.junit.jupiter.api.Test
 
 import static gg.xp.xivapi.filters.SearchFilters.*
-import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.*
 
 class SearchFilterTests {
 	@Test
@@ -65,6 +65,13 @@ class SearchFilterTests {
 	void testAnd() {
 		var filter = and(eq('Foo', 5), not(eq('Bar', 'Baz')))
 		assertEquals '+Foo=5 -Bar="Baz"', filter.toFilterString()
+
+		var sameFilter = and(eq('Foo', 5), not(eq('Bar', 'Baz')))
+		assertEquals sameFilter, filter
+		assertEquals sameFilter.hashCode(), filter.hashCode()
+
+		var differentFilter = and(eq('Foo', 6), not(eq('Bar', 'Baz')))
+		assertNotEquals differentFilter, filter
 	}
 
 	@Test
@@ -112,6 +119,17 @@ class SearchFilterTests {
 	void testOr() {
 		var filter = or(eq('Foo', 5), not(eq('Bar', 'Baz')))
 		assertEquals 'Foo=5 (-Bar="Baz")', filter.toFilterString()
+
+		var sameFilter = or(eq('Foo', 5), not(eq('Bar', 'Baz')))
+		assertEquals sameFilter, filter
+		assertEquals sameFilter.hashCode(), filter.hashCode()
+	}
+
+	@Test
+	void testNotEquals() {
+		var filter = not(eq('Foo', 5))
+		assertEquals not(eq('Foo', 5)), filter
+		assertEquals not(eq('Foo', 5)).hashCode(), filter.hashCode()
 	}
 
 	@Test
