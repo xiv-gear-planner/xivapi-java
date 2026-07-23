@@ -214,4 +214,12 @@ class SearchFilterTests {
 		)
 		assertEquals '(+foo1 +foo2) (+bar1 +bar2)', filter.toFilterString()
 	}
+
+	@Test
+	void testEscapes() {
+		var rawValue = /foo"b\a\r/
+		var filter = eq("field", rawValue)
+		var expected = /field="foo\"b\\a\\r"/
+		assertEquals expected, filter.toFilterString()
+	}
 }
