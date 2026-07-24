@@ -228,10 +228,10 @@ public class XivApiClient implements AutoCloseable {
 	/**
 	 * Retrieve a single item by row+subrow ID. e.g. MapMarker 2:1 would be row ID 2, subrow ID 1.
 	 *
-	 * @param cls The type/sheet to retrieve
-	 * @param rowId  The row ID to retrieve
-	 * @param subrowId  The subrow ID to retrieve
-	 * @param <X> The type/sheet to retrieve
+	 * @param cls      The type/sheet to retrieve
+	 * @param rowId    The row ID to retrieve
+	 * @param subrowId The subrow ID to retrieve
+	 * @param <X>      The type/sheet to retrieve
 	 * @return The mapped object
 	 */
 	public <X extends XivApiSubrowObject> X getBySubrowId(Class<X> cls, int rowId, int subrowId) {
@@ -344,7 +344,6 @@ public class XivApiClient implements AutoCloseable {
 
 	/**
 	 * @return The list of available game versions, but transformed into a flat list of version names.
-	 *
 	 * @see #getGameVersionsFull()
 	 */
 	public List<String> getGameVersions() {
@@ -383,6 +382,13 @@ public class XivApiClient implements AutoCloseable {
 		return urlResolver.getAssetUri(assetPath, format);
 	}
 
+	/**
+	 * Validates that a {@link XivApiObject} model passes basic checks, without sending any API calls. This can be
+	 * performed upon application startup or during a unit test to check for certain mistakes.
+	 *
+	 * @param clazz The model class.
+	 * @param <X>   The model type.
+	 */
 	public <X extends XivApiObject> void validateModel(Class<X> clazz) {
 		getMapping(clazz);
 	}
