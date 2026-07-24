@@ -9,6 +9,13 @@ public interface SearchFilter {
 	 */
 	String toFilterString();
 
+	/**
+	 * Alternative version of {@link #toFilterString()} that should be called when this filter is going to be combined
+	 * with other filters in such a way that it might need to be wrapped with parentheses. If that is the case, then
+	 * this method should be overridden to do that.
+	 *
+	 * @return The same as {@link #toFilterString()} but in a manner safe to use in a nested context.
+	 */
 	default String toFilterStringWrapped() {
 		return toFilterString();
 	}
