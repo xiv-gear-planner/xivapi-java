@@ -271,7 +271,7 @@ public final class SearchFilters {
 	}
 
 	/**
-	 * Create a {@link #binary(String, String, Object)} filter using the '>=' (greater than or equal to) operator.
+	 * Create a {@link #binary(String, String, Object)} filter using the '&gt;=' (greater than or equal to) operator.
 	 *
 	 * @param field The field.
 	 * @param value The comparison value.
@@ -282,7 +282,7 @@ public final class SearchFilters {
 	}
 
 	/**
-	 * Create a {@link #binary(String, String, Object)} filter using the '<=' (less than or equal to) operator.
+	 * Create a {@link #binary(String, String, Object)} filter using the '&lt;=' (less than or equal to) operator.
 	 *
 	 * @param field The field.
 	 * @param value The comparison value.
@@ -293,7 +293,7 @@ public final class SearchFilters {
 	}
 
 	/**
-	 * Create a {@link #binary(String, String, Object)} filter using the '>' (strictly greater than) operator.
+	 * Create a {@link #binary(String, String, Object)} filter using the '&gt;' (strictly greater than) operator.
 	 *
 	 * @param field The field.
 	 * @param value The comparison value.
@@ -304,7 +304,7 @@ public final class SearchFilters {
 	}
 
 	/**
-	 * Create a {@link #binary(String, String, Object)} filter using the '<' (strictly less than) operator.
+	 * Create a {@link #binary(String, String, Object)} filter using the '&lt;' (strictly less than) operator.
 	 *
 	 * @param field The field.
 	 * @param value The comparison value.
