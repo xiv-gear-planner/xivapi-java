@@ -5,11 +5,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gg.xp.xivapi.assets.AssetFormat;
 import gg.xp.xivapi.clienttypes.GameVersion;
+import gg.xp.xivapi.clienttypes.SheetMetadata;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.clienttypes.XivApiSchemaVersion;
 import gg.xp.xivapi.clienttypes.XivApiSettings;
 import gg.xp.xivapi.clienttypes.XivApiSubrowObject;
-import gg.xp.xivapi.exceptions.XivApiException;
+import gg.xp.xivapi.exceptions.XivApiErrorResponseException;
+import gg.xp.xivapi.exceptions.XivApiHttpException;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
 import gg.xp.xivapi.filters.SearchFilter;
 import gg.xp.xivapi.impl.DedupeCacheImpl;
@@ -136,14 +138,15 @@ public class XivApiClient implements AutoCloseable {
 			if (limiter != null) {
 				limiter.acquire();
 			}
-			response = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+			HttpResponse<String> rawResp = client.send(request, HttpResponse.BodyHandlers.ofString());
+			response = rawResp.body();
 			root = mapper.readTree(response);
 			if (root.has("code") && root.has("message")) {
-				throw new XivApiException("Xivapi returned error. Code %s, message '%s'".formatted(root.get("code"), root.get("message").textValue()));
+				throw new XivApiErrorResponseException(rawResp.statusCode(), root.get("message").textValue());
 			}
 		}
 		catch (IOException | InterruptedException e) {
-			throw new RuntimeException(e);
+			throw new XivApiHttpException(e);
 		}
 		finally {
 			if (limiter != null) {
@@ -210,9 +213,10 @@ public class XivApiClient implements AutoCloseable {
 		RootMapper<X> mapping = getMapping(cls);
 
 		URI uri = buildUri(builder -> builder
-				.appendPath("sheet")
-				.appendPath(sheetName)
-				.appendPath(String.valueOf(id))
+				.appendPathSegments(
+						"sheet",
+						sheetName,
+						String.valueOf(id))
 				.addParameters(mapping.getQueryFields()));
 
 		JsonNode root = sendGET(uri);
@@ -223,6 +227,27 @@ public class XivApiClient implements AutoCloseable {
 		XivApiContext context = new XivApiContext(root, settings, sv, urlResolver, cache);
 
 		return mapping.getWrappedMapper().getValue(root, context);
+	}
+
+	/**
+	 * Identical to {@link #getById(Class, int)} but returns null instead of throwing an exception if the row was not
+	 * found (but the sheet exists).
+	 *
+	 * @param cls The type/sheet to retrieve
+	 * @param id  The ID to retrieve
+	 * @param <X> The type/sheet to retrieve
+	 * @return The mapped object, or null
+	 */
+	public <X extends XivApiObject> @Nullable X getByIdOpt(Class<X> cls, int id) {
+		try {
+			return getById(cls, id);
+		}
+		catch (XivApiErrorResponseException e) {
+			if (e.getCode() == 404 && e.getMessage().contains("not found: the Excel row")) {
+				return null;
+			}
+			throw e;
+		}
 	}
 
 	/**
@@ -241,9 +266,10 @@ public class XivApiClient implements AutoCloseable {
 		RootMapper<X> mapping = getMapping(cls);
 
 		URI uri = buildUri(builder -> builder
-				.appendPath("sheet")
-				.appendPath(sheetName)
-				.appendPath(String.format("%d:%d", rowId, subrowId))
+				.appendPathSegments(
+						"sheet",
+						sheetName,
+						String.format("%d:%d", rowId, subrowId))
 				.addParameters(mapping.getQueryFields()));
 
 		JsonNode root = sendGET(uri);
@@ -296,8 +322,9 @@ public class XivApiClient implements AutoCloseable {
 		int perPage = options.getPerPage();
 
 		URI firstPageUri = buildUri(builder -> builder
-				.appendPath("sheet")
-				.appendPath(sheetName)
+				.appendPathSegments(
+						"sheet",
+						sheetName)
 				.addParameters(mapping.getQueryFields())
 				.setParameter("limit", String.valueOf(perPage)));
 
@@ -395,6 +422,17 @@ public class XivApiClient implements AutoCloseable {
 
 	public XivApiUrlResolver getUrlResolver() {
 		return urlResolver;
+	}
+
+	/**
+	 * List available sheets.
+	 *
+	 * @return the list of sheets
+	 */
+	public List<SheetMetadata> listSheets() {
+		var json = sendGET(buildUri(builder -> builder.appendPath("sheet")));
+		return mapper.convertValue(json.get("sheets"), new TypeReference<>() {
+		});
 	}
 
 	/**
