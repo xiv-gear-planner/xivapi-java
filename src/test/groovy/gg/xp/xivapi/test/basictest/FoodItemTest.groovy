@@ -2,6 +2,8 @@ package gg.xp.xivapi.test.basictest
 
 import gg.xp.xivapi.XivApiClient
 import gg.xp.xivapi.clienttypes.XivApiSettings
+import gg.xp.xivapi.exceptions.XivApiErrorResponseException
+import gg.xp.xivapi.exceptions.XivApiHttpException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.junit.jupiter.api.Assertions
@@ -174,6 +176,19 @@ class FoodItemTest {
 
 		Assertions.assertNotEquals(differentItem, item)
 		Assertions.assertNotEquals(differentItem.hashCode(), item.hashCode())
+	}
+
+	@Test
+	void testNotFound() {
+		Item sameItem = client.getByIdOpt Item, 44096
+		Assertions.assertEquals item, sameItem
+
+		Item nullItem = client.getByIdOpt Item, 999999
+		Assertions.assertNull nullItem
+		var exc = Assertions.assertThrows(XivApiErrorResponseException) {
+			client.getById Item, 999999
+		}
+		Assertions.assertEquals 404, exc.code
 	}
 
 }
