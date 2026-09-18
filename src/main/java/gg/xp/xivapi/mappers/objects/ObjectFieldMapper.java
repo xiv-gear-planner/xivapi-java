@@ -180,12 +180,10 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			throw new XivApiDeserializationException("Error deserializing %s from '%s'".formatted(objectType, current), t);
 		}
 
-		boolean strict = context.settings().isStrict();
-
 		// It is not necessary to use the `strict` flag as part of the cache key, as both the strict flag and the cache
 		// itself are both scoped to the context object.
-		return context.cache().computeIfAbsent(objectType, methodValueMap, map -> {
-			ObjectInvocationHandler oih = new ObjectInvocationHandler(map, strict, simpleName, rowId);
+		return context.cache().computeIfAbsent(objectType, rowId, methodValueMap, map -> {
+			ObjectInvocationHandler oih = new ObjectInvocationHandler(map, context.settings().isStrict(), simpleName, rowId);
 			//noinspection unchecked
 			return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, oih);
 		});

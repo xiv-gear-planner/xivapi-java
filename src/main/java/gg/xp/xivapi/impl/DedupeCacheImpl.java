@@ -5,13 +5,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public class DedupeCacheImpl implements DedupeCache {
-	private record CacheKey(Class<?> type, Object values) {}
+	private record CacheKey(Class<?> type, int id, Object values) {}
 
 	private final Map<CacheKey, Object> cache = new ConcurrentHashMap<>();
 
 	@Override
-	public <K, T> T computeIfAbsent(Class<T> type, K cacheKey, Function<K, T> mappingFunction) {
-		var key = new CacheKey(type, cacheKey);
+	public <K, T> T computeIfAbsent(Class<T> type, int id, K values, Function<K, T> mappingFunction) {
+		var key = new CacheKey(type, id, values);
 		//noinspection unchecked
 		return (T) cache.computeIfAbsent(key, (ck) -> mappingFunction.apply((K) ck.values));
 	}
