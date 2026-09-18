@@ -6,6 +6,7 @@ import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.clienttypes.XivApiStruct;
 import gg.xp.xivapi.exceptions.XivApiDeserializationException;
 import gg.xp.xivapi.mappers.util.MappingUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,7 @@ public class StructInvocationHandler implements InvocationHandler, Serializable 
 
 
 	@Override
+	@Nullable("When using NullIfZero")
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
 		Object value = methodValueMap.get(method);

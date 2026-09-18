@@ -128,7 +128,7 @@ public final class XivApiSettings {
 		 * @param baseAssetUri The new base URL
 		 * @return The builder
 		 */
-		public Builder setBaseAssetUri(@Nullable URI baseAssetUri) {
+		public Builder setBaseAssetUri(@Nullable("Null to reset to default") URI baseAssetUri) {
 			this.baseAssetUri = baseAssetUri;
 			return this;
 		}
@@ -153,7 +153,7 @@ public final class XivApiSettings {
 		 * @param gameVersion The game version to use for API requests.
 		 * @return The builder
 		 */
-		public Builder setGameVersion(@Nullable String gameVersion) {
+		public Builder setGameVersion(@Nullable("Null to reset to default (use latest game version)") String gameVersion) {
 			this.gameVersion = gameVersion;
 			return this;
 		}
@@ -164,7 +164,7 @@ public final class XivApiSettings {
 		 * @param schemaVersion The schema version to use for API requests.
 		 * @return The builder
 		 */
-		public Builder setSchemaVersion(@Nullable String schemaVersion) {
+		public Builder setSchemaVersion(@Nullable("Null to reset to default (use latest schema version)") String schemaVersion) {
 			this.schemaVersion = schemaVersion;
 			return this;
 		}
@@ -199,7 +199,7 @@ public final class XivApiSettings {
 		 * @param httpClient The HttpClient to use.
 		 * @return The builder.
 		 */
-		public Builder setHttpClient(@Nullable HttpClient httpClient) {
+		public Builder setHttpClient(@Nullable("Null to reset to default") HttpClient httpClient) {
 			this.httpClient = httpClient;
 			return this;
 		}
