@@ -6,6 +6,7 @@ import gg.xp.xivapi.clienttypes.XivApiBase;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.exceptions.XivApiDeserializationException;
 import gg.xp.xivapi.mappers.util.MappingUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,12 +25,14 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 	private static final Method equalsMethod;
 	private static final Method hashCodeMethod;
 	private static final Method mapMethod;
+	private static final Method tsMethod;
 
 	static {
 		try {
 			equalsMethod = Object.class.getMethod("equals", Object.class);
 			hashCodeMethod = Object.class.getMethod("hashCode");
 			mapMethod = XivApiBase.class.getMethod("getMethodValueMap");
+			tsMethod = Object.class.getMethod("toString");
 		}
 		catch (NoSuchMethodException e) {
 			throw new RuntimeException(e);
@@ -37,19 +40,23 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 	}
 
 	@Serial
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 3L;
 	private final Map<Method, Object> methodValueMap;
 	private final boolean strict;
+	private final String simpleName;
+	private final int rowId;
 
 	@SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType") // We don't want a copy for memory reasons
-	public ObjectInvocationHandler(Map<Method, Object> methodValueMap, boolean strict) {
+	public ObjectInvocationHandler(Map<Method, Object> methodValueMap, boolean strict, String simpleName, int rowId) {
 		this.methodValueMap = methodValueMap;
 		this.strict = strict;
-//		this.hashCode = methodValueMap.hashCode();
+		this.simpleName = simpleName;
+		this.rowId = rowId;
 	}
 
 
 	@Override
+	@Nullable("When using NullIfZero")
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
 		Object value = methodValueMap.get(method);
@@ -60,6 +67,12 @@ public class ObjectInvocationHandler implements InvocationHandler, Serializable 
 			}
 			if (method.equals(mapMethod)) {
 				return Collections.unmodifiableMap(methodValueMap);
+			}
+			if (method.getName().equals("getRowId")) {
+				return rowId;
+			}
+			if (method.equals(tsMethod)) {
+				return "%s(%s)".formatted(simpleName, rowId);
 			}
 			// Handle default java object methods
 			if (method.getDeclaringClass().equals(Object.class)) {

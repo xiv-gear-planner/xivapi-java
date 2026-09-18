@@ -6,15 +6,13 @@ import gg.xp.xivapi.clienttypes.XivApiBase;
 import gg.xp.xivapi.clienttypes.XivApiStruct;
 import gg.xp.xivapi.collections.KeySerDe;
 import gg.xp.xivapi.collections.KeyedAlikeMapFactory;
-import gg.xp.xivapi.mappers.objects.serialization.MethodKeySerDe;
 import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.impl.XivApiContext;
 import gg.xp.xivapi.mappers.FieldMapper;
 import gg.xp.xivapi.mappers.QueryFieldsBuilder;
 import gg.xp.xivapi.mappers.getters.FlatFieldMapper;
+import gg.xp.xivapi.mappers.objects.serialization.MethodKeySerDe;
 import gg.xp.xivapi.mappers.util.MappingUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -25,7 +23,6 @@ import java.util.Set;
 
 public class StructFieldMapper<X> implements FieldMapper<X> {
 
-	private static final Logger log = LoggerFactory.getLogger(StructFieldMapper.class);
 	private final Map<Method, FieldMapper<?>> methodFieldMap = new LinkedHashMap<>();
 	private final Class<X> objectType;
 	private final Method svMethod;
@@ -78,8 +75,10 @@ public class StructFieldMapper<X> implements FieldMapper<X> {
 			methodValueMap.put(method, value);
 		});
 
-		//noinspection unchecked
-		return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, new StructInvocationHandler(methodValueMap, context.settings().isStrict()));
+		return context.cache().computeIfAbsent(objectType, 0, methodValueMap, map -> {
+			//noinspection unchecked
+			return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, new StructInvocationHandler(methodValueMap, context.settings().isStrict()));
+		});
 	}
 
 	@Override

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import gg.xp.xivapi.annotations.XivApiAs;
 import gg.xp.xivapi.annotations.XivApiRaw;
 import gg.xp.xivapi.clienttypes.XivApiLangValue;
+import gg.xp.xivapi.collections.KeyedAlikeMapFactory;
 import gg.xp.xivapi.exceptions.XivApiMappingException;
 import gg.xp.xivapi.exceptions.XivApiMissingNodeException;
 import gg.xp.xivapi.impl.XivApiContext;
@@ -23,12 +24,17 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Field mapper for {@link XivApiLangValue}.
+ *
+ * @param <X>
+ */
 public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> {
 	private final Method method;
 	private final String fieldName;
@@ -37,6 +43,7 @@ public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> 
 	private final List<String> langs;
 	private final AutoValueMapper<X> innerMapper;
 	private final Class<X> innerTypeClass;
+	private final KeyedAlikeMapFactory<String> kaMapFactory;
 
 	public LangValueFieldMapper(String fieldName, boolean isTransient, Method method, ObjectMapper mapper) {
 		if (method.isAnnotationPresent(XivApiRaw.class)) {
@@ -56,6 +63,7 @@ public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> 
 		//noinspection unchecked
 		this.innerTypeClass = (Class<X>) MappingUtils.parameterizedTypeToRawClass(innerType);
 		this.innerMapper = new AutoValueMapper<>(innerTypeClass, method, innerType, mapper);
+		this.kaMapFactory = new KeyedAlikeMapFactory<>(new LinkedHashSet<>(this.langs));
 	}
 
 	@Override
@@ -68,7 +76,7 @@ public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> 
 		if (fieldsNode == null) {
 			throw new XivApiMissingNodeException("'%s' node is missing".formatted(fieldName), current, XivApiLangValue.class, method);
 		}
-		Map<String, X> out = new HashMap<>(4);
+		Map<String, X> out = kaMapFactory.create();
 		fieldsNode.fields().forEachRemaining(entry -> {
 			Matcher matcher = fieldMatcher.matcher(entry.getKey());
 			if (matcher.matches()) {
@@ -83,6 +91,11 @@ public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> 
 		return new LangValueImpl<>(Collections.unmodifiableMap(out));
 	}
 
+	/**
+	 * Adds a separate field to the request builder for each language.
+	 *
+	 * @param parent The parent mapper
+	 */
 	@Override
 	public void buildQueryFields(QueryFieldsBuilder parent) {
 		boolean isArray = MappingUtils.isArrayQueryType(innerTypeClass);
@@ -100,6 +113,9 @@ public class LangValueFieldMapper<X> implements FieldMapper<XivApiLangValue<X>> 
 		}
 	}
 
+	/**
+	 * Jackson serialization helper for lang values.
+	 */
 	public static class LangValueSerializer extends JsonSerializer<XivApiLangValue<?>> {
 		@Override
 		public void serialize(XivApiLangValue<?> value, JsonGenerator gen, SerializerProvider serializers)

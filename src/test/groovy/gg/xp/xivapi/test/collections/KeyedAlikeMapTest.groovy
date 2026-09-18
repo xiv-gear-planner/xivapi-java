@@ -94,7 +94,7 @@ class KeyedAlikeMapTest {
 		map[key2] = "Stuff2"
 		assertSize 2, map
 		Assertions.assertEquals([(key1): "Stuff", (key2): "Stuff2"], map)
-		Assertions.assertEquals($/KeyedAlikeMap{${key2}=Stuff2, ${key1}=Stuff}/$.toString(), map.toString());
+		Assertions.assertEquals($/KeyedAlikeMap{${key1}=Stuff, ${key2}=Stuff2}/$.toString(), map.toString());
 
 		{
 			Assertions.assertTrue(map.containsKey(key1))

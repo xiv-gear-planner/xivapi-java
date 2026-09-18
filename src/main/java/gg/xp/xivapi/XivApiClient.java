@@ -238,7 +238,7 @@ public class XivApiClient implements AutoCloseable {
 	 * @param <X> The type/sheet to retrieve
 	 * @return The mapped object, or null
 	 */
-	public <X extends XivApiObject> @Nullable X getByIdOpt(Class<X> cls, int id) {
+	public <X extends XivApiObject> @Nullable("If the row is not found") X getByIdOpt(Class<X> cls, int id) {
 		try {
 			return getById(cls, id);
 		}

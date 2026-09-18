@@ -14,7 +14,6 @@ import gg.xp.xivapi.clienttypes.XivApiLangValue;
 import gg.xp.xivapi.clienttypes.XivApiObject;
 import gg.xp.xivapi.collections.KeySerDe;
 import gg.xp.xivapi.collections.KeyedAlikeMapFactory;
-import gg.xp.xivapi.mappers.objects.serialization.MethodKeySerDe;
 import gg.xp.xivapi.exceptions.XivApiDeserializationException;
 import gg.xp.xivapi.exceptions.XivApiException;
 import gg.xp.xivapi.impl.XivApiContext;
@@ -24,9 +23,9 @@ import gg.xp.xivapi.mappers.getters.MetaFieldMapper;
 import gg.xp.xivapi.mappers.getters.NormalFieldMapper;
 import gg.xp.xivapi.mappers.getters.ThisFieldMapper;
 import gg.xp.xivapi.mappers.getters.TransientFieldMapper;
+import gg.xp.xivapi.mappers.objects.serialization.MethodKeySerDe;
 import gg.xp.xivapi.mappers.util.MappingUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -49,13 +48,11 @@ import java.util.Set;
  */
 public class ObjectFieldMapper<X> implements FieldMapper<X> {
 
-	private static final Logger log = LoggerFactory.getLogger(ObjectFieldMapper.class);
 	private final Map<Method, FieldMapper<?>> methodFieldMap = new LinkedHashMap<>();
 	private final Class<X> objectType;
+	private final String simpleName;
 	private final Method pkMethod;
-	private final Method ridMethod;
 	private final Method svMethod;
-	private final Method tsMethod;
 	private final KeyedAlikeMapFactory<Method> kaMapFactory;
 
 	public ObjectFieldMapper(Class<X> cls, ObjectMapper mapper) {
@@ -63,13 +60,12 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 		try {
 			// Common methods
 			pkMethod = cls.getMethod("getPrimaryKey");
-			ridMethod = cls.getMethod("getRowId");
 			svMethod = XivApiBase.class.getMethod("getSchemaVersion");
-			tsMethod = Object.class.getMethod("toString");
 		}
 		catch (NoSuchMethodException e) {
 			throw new XivApiException(e);
 		}
+		this.simpleName = cls.getSimpleName().intern();
 		for (Method method : cls.getMethods()) {
 			if (method.getDeclaringClass().isAssignableFrom(XivApiObject.class)) {
 				// The methods declared at the XivApiObject level or higher are the "Common methods" referenced above
@@ -130,14 +126,13 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 		}
 		Set<Method> allMethods = new HashSet<>(methodFieldMap.keySet());
 		allMethods.add(pkMethod);
-		allMethods.add(ridMethod);
 		allMethods.add(svMethod);
-		allMethods.add(tsMethod);
 		KeySerDe<Method, ?> serDe = new MethodKeySerDe();
 		this.kaMapFactory = new KeyedAlikeMapFactory<>(allMethods, serDe);
 	}
 
 	@Override
+	@Nullable("When using NullIfZero, or when this is a nested value with a value of 0")
 	public X getValue(JsonNode current, XivApiContext context) {
 
 		int primaryKey;
@@ -173,11 +168,7 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			}
 
 			methodValueMap.put(pkMethod, primaryKey);
-			methodValueMap.put(ridMethod, rowId);
 			methodValueMap.put(svMethod, context.schemaVersion());
-			// TODO: this would work better as some kind of lazy value, as it is not ideal to have to intern every
-			// single instance of these to save memory.
-			methodValueMap.put(tsMethod, "%s(%s)".formatted(objectType.getSimpleName(), rowId));
 			// Go through the method -> field map, deserialize each field into its respective type, and then
 			// assemble a method -> value map.
 			methodFieldMap.forEach((method, fieldMapper) -> {
@@ -189,13 +180,12 @@ public class ObjectFieldMapper<X> implements FieldMapper<X> {
 			throw new XivApiDeserializationException("Error deserializing %s from '%s'".formatted(objectType, current), t);
 		}
 
-		boolean strict = context.settings().isStrict();
-
 		// It is not necessary to use the `strict` flag as part of the cache key, as both the strict flag and the cache
 		// itself are both scoped to the context object.
-		return context.cache().computeIfAbsent(objectType, methodValueMap, map -> {
+		return context.cache().computeIfAbsent(objectType, rowId, methodValueMap, map -> {
+			ObjectInvocationHandler oih = new ObjectInvocationHandler(map, context.settings().isStrict(), simpleName, rowId);
 			//noinspection unchecked
-			return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, new ObjectInvocationHandler(map, strict));
+			return (X) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{objectType}, oih);
 		});
 
 	}

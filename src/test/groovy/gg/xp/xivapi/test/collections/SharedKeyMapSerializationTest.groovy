@@ -38,19 +38,25 @@ class SharedKeyMapSerializationTest {
 		// We can't access it directly but we can verify it by looking at internal structure or just trusting the factory
 		// For verification, let's put them in a list and serialize the list
 		
-		def handler1 = new ObjectInvocationHandler(map1, true)
+		def handler1 = new ObjectInvocationHandler(map1, true, "foo", 1)
 		def proxy1 = Proxy.newProxyInstance(this.class.classLoader, [TestInterface] as Class[], handler1) as TestInterface
 		
-		def handler2 = new ObjectInvocationHandler(map2, true)
+		def handler2 = new ObjectInvocationHandler(map2, true, "foo", 2)
 		def proxy2 = Proxy.newProxyInstance(this.class.classLoader, [TestInterface] as Class[], handler2) as TestInterface
-		
+
+		Assertions.assertEquals("foo(1)", proxy1.toString())
+		Assertions.assertEquals("foo(2)", proxy2.toString())
+
 		def list = [proxy1, proxy2]
 		
 		def deserializedList = TestUtils.serializeAndDeserialize(list) as List<TestInterface>
 		
 		def dProxy1 = deserializedList[0]
 		def dProxy2 = deserializedList[1]
-		
+
+		Assertions.assertEquals("foo(1)", dProxy1.toString())
+		Assertions.assertEquals("foo(2)", dProxy2.toString())
+
 		Assertions.assertEquals("Item 1", dProxy1.getName())
 		Assertions.assertEquals(1, dProxy1.getId())
 		Assertions.assertEquals("Item 2", dProxy2.getName())

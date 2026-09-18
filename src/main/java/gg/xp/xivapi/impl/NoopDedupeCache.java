@@ -5,7 +5,7 @@ import java.util.function.Function;
 public class NoopDedupeCache implements DedupeCache{
 	public static final DedupeCache INSTANCE = new NoopDedupeCache();
 	@Override
-	public <K, T> T computeIfAbsent(Class<T> type, K cacheKey, Function<K, T> mappingFunction) {
+	public <K, T> T computeIfAbsent(Class<T> type, int id, K cacheKey, Function<K, T> mappingFunction) {
 		return mappingFunction.apply(cacheKey);
 	}
 }
